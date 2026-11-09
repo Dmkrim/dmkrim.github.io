@@ -2791,8 +2791,8 @@ async function ideaOfDay(){
 
 /* ---------- the Idea page ---------- */
 let TODAYIDEA=null,ideaBusy=false,exOpen=false;
-const EXS=[["amazon","Amazon","https://www.amazon.com/s?k="],["etsy","Etsy","https://www.etsy.com/search?q="],["ebay","eBay","https://www.ebay.com/sch/i.html?_nkw="]];
-function exHTML(i){return `<div class="exbox"><p class="act" style="margin:0"><b>Search for &ldquo;${esc(i.t)}&rdquo; on:</b></p><div class="ab">${EXS.map(x=>`<button class="p" data-ida="exs|${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The site opens in your browser with real products and prices. Found a good one? Copy its link and add it to Follow up Products.</p><div class="ab"><button class="g" data-ida="exadd">Add a product link to Follow up</button></div></div>`}
+const EXSITES=[["amazon","Amazon","https://www.amazon.com/s?k="],["etsy","Etsy","https://www.etsy.com/search?q="],["ebay","eBay","https://www.ebay.com/sch/i.html?_nkw="],["google","Google","https://www.google.com/search?tbm=shop&q="]];window.EXSITES=EXSITES;
+function exHTML(i){return `<div class="exbox"><p class="act" style="margin:0"><b>Search for &ldquo;${esc(i.t)}&rdquo; on:</b></p><div class="ab">${EXSITES.map(x=>`<button class="p" data-ida="exs|${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The site opens in your browser with real products and prices. Found a good one? Copy its link, then start a new product from this idea with that link in its Follow up list.</p><div class="ab"><button class="g" data-ida="exadd">Start a new product from this idea</button></div></div>`}
 function dueIdeas(){const t=TODAY();return ideas().filter(i=>i.rem&&i.rem<=t&&!i.started&&!i.done)}
 function ideaCard(){
   const i=TODAYIDEA;if(!i)return'<p class="act">Thinking of an idea for you...</p>';
@@ -2829,8 +2829,8 @@ document.addEventListener("click",async e=>{
   if(act==="save"){const i=TODAYIDEA;if(!i)return;const a=ideas();if(!a.some(x=>x.t.toLowerCase()===i.t.toLowerCase())){a.unshift({id:mkId(),t:i.t,why:i.why,src:"daily",saved:Date.now(),kw:i.kw||[]});putIdeas(a);toast("Saved in your Idea inbox.")}refreshIdea()}
   else if(act==="add"){const v=($("#idnew")||{}).value.trim(),d=($("#iddate")||{}).value||"";if(!v){toast("Write your idea first.");return}const a=ideas();a.unshift({id:mkId(),t:v,why:"",src:"me",saved:Date.now(),rem:d||""});putIdeas(a);toast(d?"Saved. You will see a reminder on "+d+".":"Saved in your Idea inbox.");refreshIdea()}
   else if(act==="ex"){exOpen=!exOpen;refreshIdea()}
-  else if(act==="exs"){const x=EXS.find(y=>y[0]===id);if(x&&TODAYIDEA)openExt(x[2]+encodeURIComponent(TODAYIDEA.t))}
-  else if(act==="exadd"){const v=await ask("Paste the link of the product you found. It will be added to Follow up Products of "+(st.v.nm?"\""+st.v.nm+"\"":"your current product")+".",{input:true,value:"",ok:"Add"});if(v==null)return;const l=String(v).trim();if(!/^https?:\/\//i.test(l)){toast("This does not look like a web link.");return}const a=fget();a.push({id:newPid(),name:nameFromLink(l)||(siteOf(l)+" product"),link:l,site:siteOf(l)});fput(a);toast("Added to Follow up Products.")}
+  else if(act==="exs"){const x=EXSITES.find(y=>y[0]===id);if(x&&TODAYIDEA)openExt(x[2]+encodeURIComponent(TODAYIDEA.t))}
+  else if(act==="exadd"){const i=TODAYIDEA;if(!i)return;const v=await ask("Paste the link of the product you found. A NEW product +i.t+ will be created from this idea, with this link in its Follow up list.",{input:true,value:"",ok:"Create"});if(v==null)return;const l=String(v).trim();if(!/^https?:\/\//i.test(l)){toast("This does not look like a web link.");return}const pid0=st.pid;await newProduct();if(st.pid===pid0)return;st.v.nm=i.t;if(i.kw&&i.kw.length)st.v.kwf=i.kw.join(", ");st.v.fn="Idea of the day: "+i.t+(i.why?". "+i.why:"")+(i.kw&&i.kw.length?" Keyword ideas: "+i.kw.join(", ")+".":"");st.v.fu=JSON.stringify([{id:newPid(),name:nameFromLink(l)||(siteOf(l)+" product"),link:l,site:siteOf(l)}]);st.i=0;st.w=true;st.m=null;st.f=true;st.l=false;st.p=false;st.r=false;save();render();toast("New product created from the idea.")}
   else if(act==="another"){exOpen=false;const o=LS.get("pp_idoff",{}),day=TODAY(),seen=LS.get("pp_idseen",{});if(TODAYIDEA)seen[TODAYIDEA.t.toLowerCase()]=Date.now();LS.set("pp_idseen",seen);LS.set("pp_idoff",{d:day,n:(o.d===day?o.n:0)+1});TODAYIDEA=await ideaOfDay();refreshIdea()}
   else if(act==="startnow"){if(TODAYIDEA){const seen=LS.get("pp_idseen",{});seen[TODAYIDEA.t.toLowerCase()]=Date.now();LS.set("pp_idseen",seen);await startIdea(TODAYIDEA.t)}}
   else if(act==="ask"){if(TODAYIDEA){advOpen();advText("What are good Etsy tags for "+TODAYIDEA.t+"?")}}
@@ -3097,9 +3097,13 @@ function fuSync(){
 }
 /* ---------- Follow up page ---------- */
 function ago(t){const d=Math.floor((Date.now()-t)/DAY);return d<=0?"today":d===1?"yesterday":d+" days ago"}
+let fsrch=false,fq=null;
+const fqDef=()=>(String(st.v.ttl||"").trim()||String(st.v.nm||"").trim());
+function srchHTML(){const q=fq==null?fqDef():fq;
+  return `<div class="exbox"><p class="act" style="margin:0"><b>Find similar products on:</b></p><input type="text" id="fq" value="${esc(q)}" placeholder="What to search for" aria-label="Search words" style="margin:6px 0"><div class="ab">${EXSITES.map(x=>`<button class="p" data-fs="${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The search starts with your listing title (step 13) or, if it is empty, your product name (step 1). You can change the words. The site opens in your browser. Copy the product link, come back and tap + Add link.</p></div>`}
 followView=function(){
   const it=fget();
-  A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+
+  A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+(fsrch?srchHTML():"")+
   it.map(f=>{const site=f.link?(f.site||siteOf(f.link)):"";
     const lk=f.link?`<span class="sbg s-${esc(site)}">${esc(site)}</span><span class="sp"></span><button class="g" data-act="fopen" data-id="${f.id}">Open link</button><button class="g" data-act="flink" data-id="${f.id}" aria-label="Edit link">&#9998;</button>`:`<button class="p" data-act="flink" data-id="${f.id}">+ Add link</button><span class="sp"></span>`;
     let pr="";
@@ -3108,6 +3112,9 @@ followView=function(){
     return `<div class="fr fr41"><div class="fl">${lk}<button class="g" data-act="fdel" data-id="${f.id}" aria-label="Remove product">&times;</button></div><input class="fn" type="text" data-fn="${f.id}" value="${esc(f.name)}" placeholder="Product name" aria-label="Product name">${pr}</div>`}).join("")+
   `${it.length?"":'<p class="act">No products yet. Tap "Add product" to start.</p>'}<div class="nav"><button class="p" data-act="fadd">+ Add product</button></div>${tipsHTML("f")}<div class="nav"><button class="p" data-act="save">Save the Product</button></div></div>`+navHTML();
 };
+A.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-act="fadd"]');if(b){fsrch=true;fq=null}},true);
+A.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-fs]");if(!b)return;const x=EXSITES.find(y=>y[0]===b.dataset.fs),i=A.querySelector("#fq"),q=(i?i.value:"").trim();if(!q){toast("Type what to search for.");return}if(x)openExt(x[2]+encodeURIComponent(q))});
+A.addEventListener("input",e=>{if(e.target.id==="fq")fq=e.target.value});
 A.addEventListener("input",e=>{const id=e.target.dataset&&e.target.dataset.fp;if(!id)return;
   const a=fget(),it=a.find(x=>x.id===id);if(!it)return;it.price=e.target.value.trim();it.pd=it.price?Date.now():0;fput(a);
   const sm=e.target.closest(".fr").querySelector("small");if(sm){sm.className="";sm.textContent=it.price?"Price updated today.":"Open the link, find the price and type it here."}});
@@ -3140,7 +3147,7 @@ function placeFupl(){
   if(fu.nextElementSibling!==lab)lab.before(fu);
 }
 function post(){try{placeFupl()}catch(e){}try{placeStat()}catch(e){}}
-{const _r=render;render=function(){
+{const _r=render;render=function(){if(!st.f){fsrch=false;fq=null}
   try{if(st.w&&!st.m&&!st.f&&!st.p&&!st.l&&!st.r&&!st.g&&st.i===2)fuSync()}catch(e){}
   _r();post()}}
 {const _v=v27inject;v27inject=function(){_v();post()}}
