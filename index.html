@@ -3100,9 +3100,9 @@ function fuSync(){
 /* ---------- Follow up page ---------- */
 function ago(t){const d=Math.floor((Date.now()-t)/DAY);return d<=0?"today":d===1?"yesterday":d+" days ago"}
 let fsrch=false,fq=null;
-const fqDef=()=>(String(st.v.ttl||"").trim()||String(st.v.nm||"").trim());
+const fqDef=()=>String(st.v.nm||"").trim();
 function srchHTML(){const q=fq==null?fqDef():fq;
-  return `<div class="exbox"><p class="act" style="margin:0"><b>Find similar products on:</b></p><input type="text" id="fq" value="${esc(q)}" placeholder="What to search for" aria-label="Search words" style="margin:6px 0"><div class="ab">${EXSITES.map(x=>`<button class="p" data-fs="${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The search starts with your listing title (step 13) or, if it is empty, your product name (step 1). You can change the words. The site opens in your browser. Copy the product link, come back and tap + Add link below.</p></div>`}
+  return `<div class="exbox"><p class="act" style="margin:0"><b>Find similar products on:</b></p><input type="text" id="fq" value="${esc(q)}" placeholder="What to search for" aria-label="Search words" style="margin:6px 0"><div class="ab">${EXSITES.map(x=>`<button class="p" data-fs="${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The search starts with your product name from step 1. You can change the words. The site opens in your browser. Copy the product link, come back and tap + Add link below.</p></div>`}
 followView=function(){
   const it=fget(),tgt=fsrch?it.map((f,i)=>f.link?-1:i).filter(i=>i>=0).pop():-1;
   A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+
