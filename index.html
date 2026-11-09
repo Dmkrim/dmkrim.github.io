@@ -427,6 +427,23 @@ body::before{animation:kbb 20s ease-in-out infinite alternate}
  body.pvw .vwr .vtb td{border:1px solid #888!important;padding:3px 5px}
  body.pvw .vwr .vb.pdf canvas{page-break-after:always;max-width:100%!important;height:auto!important}
 }
+/* ===== V41 ===== */
+.exbox{margin-top:10px;padding:10px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.exbox .ab{margin-top:6px}
+.fr.fr41{flex-direction:column;align-items:stretch;gap:6px}
+.fr41 .fl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fr41 .fl .sp{flex:1}
+.fr41 .fn{height:44px;box-sizing:border-box;margin:0;width:100%}
+.fr41 .fpr{display:flex;gap:8px;align-items:center;margin:0}
+.fr41 .fpr input{margin:0;max-width:160px;height:44px;box-sizing:border-box}
+.fr41 small{display:block;color:var(--mu);font-size:.78rem}
+.fr41 small.old{color:#b45309;font-weight:700}
+.sbg{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.78rem;font-weight:700;color:#fff;background:#64748b}
+.sbg.s-Etsy{background:#d5521b}.sbg.s-eBay{background:#2563eb}.sbg.s-Amazon{background:#c27a00}
+.pstat{margin-top:8px;padding:10px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);font-size:.92rem}
+.pstat .w{color:#b45309;font-weight:700;margin-top:4px}
+.pstat .ab{margin-top:8px}
+#fupl .fsg{font-weight:700;margin:10px 0 4px}
 </style>
 </head>
 <body>
@@ -659,7 +676,7 @@ function moreView(){
   else if(m==="plan")h+=ill(12)+'<div class="num">Launch plan</div><h2>When will you do it?</h2><p class="act">Pick a date for each milestone. Dates are saved with your product.</p>'+MIL.map((t,j)=>{const v=st.v["d"+j],dd=v?Math.round((new Date(v+"T00:00:00")-new Date(new Date().toDateString()))/864e5):null;return `<label class="f">${t}<input type="date" data-f="d${j}" value="${esc(v)}"></label>`+(dd==null||isNaN(dd)?"":`<small class="act">${dd>0?"in "+dd+" days":dd===0?"today":-dd+" days ago"}</small>`)}).join("");
   else if(m==="legal")h+=ill(5)+'<div class="num">Legal and safety</div><h2>Before you sell</h2><p class="act">General information only, not legal advice. Rules differ by country. Ask a professional or your local authority if you are unsure.</p><p class="okmsg" id="lgc"></p>'+LEG.map((t,j)=>`<label class="ck"><input type="checkbox" data-c="L${j}" ${st.c["L"+j]?"checked":""}><span>${esc(t)}</span></label>`).join("");
   else if(m==="help")h+=ill(1)+'<div class="num">Help</div><h2>Questions and glossary</h2><h3>Questions</h3>'+FQ.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("")+'<h3>Glossary</h3>'+GL.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("");
-  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.40 (build 40) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
+  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.41 (build 41) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
   h+='<div class="nav">'+(m!=="more"?'<button data-act="m" data-m="more">Menu</button>':"")+'<button class="p" data-act="mback">Back to my product</button></div></div>';
   A.innerHTML=h;updOk();
 }
@@ -2773,12 +2790,14 @@ async function ideaOfDay(){
 }
 
 /* ---------- the Idea page ---------- */
-let TODAYIDEA=null,ideaBusy=false;
+let TODAYIDEA=null,ideaBusy=false,exOpen=false;
+const EXS=[["amazon","Amazon","https://www.amazon.com/s?k="],["etsy","Etsy","https://www.etsy.com/search?q="],["ebay","eBay","https://www.ebay.com/sch/i.html?_nkw="]];
+function exHTML(i){return `<div class="exbox"><p class="act" style="margin:0"><b>Search for &ldquo;${esc(i.t)}&rdquo; on:</b></p><div class="ab">${EXS.map(x=>`<button class="p" data-ida="exs|${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The site opens in your browser with real products and prices. Found a good one? Copy its link and add it to Follow up Products.</p><div class="ab"><button class="g" data-ida="exadd">Add a product link to Follow up</button></div></div>`}
 function dueIdeas(){const t=TODAY();return ideas().filter(i=>i.rem&&i.rem<=t&&!i.started&&!i.done)}
 function ideaCard(){
   const i=TODAYIDEA;if(!i)return'<p class="act">Thinking of an idea for you...</p>';
   const inInbox=ideas().some(x=>x.t.toLowerCase()===i.t.toLowerCase());
-  return `<div class="ideabox"><h3>${esc(i.t)}</h3><p class="act">${esc(i.why)}</p>${i.from?`<p class="chip">Reminds me of your product: ${esc(i.from)}</p>`:""}${i.occ?`<p class="chip">Season: ${esc(i.occ)}</p>`:""}${i.kw&&i.kw.length?`<p class="act" style="font-size:.88rem"><b>Keyword ideas:</b> ${esc(i.kw.join(", "))}</p>`:""}<p class="act" style="font-size:.88rem">${esc(i.step||"")}</p><div class="ab"><button class="p" data-ida="save">${inInbox?"Saved in Idea inbox ✓":"Send to Idea inbox"}</button><button class="g" data-ida="startnow">Start this idea now</button><button class="g" data-ida="another">Show another idea</button><button class="g" data-ida="ask">Ask the Adviser</button></div></div>`;
+  return `<div class="ideabox"><h3>${esc(i.t)}</h3><p class="act">${esc(i.why)}</p>${i.from?`<p class="chip">Reminds me of your product: ${esc(i.from)}</p>`:""}${i.occ?`<p class="chip">Season: ${esc(i.occ)}</p>`:""}${i.kw&&i.kw.length?`<p class="act" style="font-size:.88rem"><b>Keyword ideas:</b> ${esc(i.kw.join(", "))}</p>`:""}<p class="act" style="font-size:.88rem">${esc(i.step||"")}</p><div class="ab"><button class="p" data-ida="save">${inInbox?"Saved in Idea inbox ✓":"Send to Idea inbox"}</button><button class="g" data-ida="startnow">Start this idea now</button><button class="g" data-ida="another">Show another idea</button><button class="g" data-ida="ask">Ask the Adviser</button><button class="g" data-ida="ex">${exOpen?"Hide the examples":"Show me the examples"}</button></div>${exOpen?exHTML(i):""}</div>`;
 }
 function dueHTML(){
   const d=dueIdeas();if(!d.length)return"";
@@ -2809,7 +2828,10 @@ document.addEventListener("click",async e=>{
   const upd=f=>{const a=ideas(),x=a.find(y=>y.id===id);if(x){f(x);putIdeas(a)}};
   if(act==="save"){const i=TODAYIDEA;if(!i)return;const a=ideas();if(!a.some(x=>x.t.toLowerCase()===i.t.toLowerCase())){a.unshift({id:mkId(),t:i.t,why:i.why,src:"daily",saved:Date.now(),kw:i.kw||[]});putIdeas(a);toast("Saved in your Idea inbox.")}refreshIdea()}
   else if(act==="add"){const v=($("#idnew")||{}).value.trim(),d=($("#iddate")||{}).value||"";if(!v){toast("Write your idea first.");return}const a=ideas();a.unshift({id:mkId(),t:v,why:"",src:"me",saved:Date.now(),rem:d||""});putIdeas(a);toast(d?"Saved. You will see a reminder on "+d+".":"Saved in your Idea inbox.");refreshIdea()}
-  else if(act==="another"){const o=LS.get("pp_idoff",{}),day=TODAY(),seen=LS.get("pp_idseen",{});if(TODAYIDEA)seen[TODAYIDEA.t.toLowerCase()]=Date.now();LS.set("pp_idseen",seen);LS.set("pp_idoff",{d:day,n:(o.d===day?o.n:0)+1});TODAYIDEA=await ideaOfDay();refreshIdea()}
+  else if(act==="ex"){exOpen=!exOpen;refreshIdea()}
+  else if(act==="exs"){const x=EXS.find(y=>y[0]===id);if(x&&TODAYIDEA)openExt(x[2]+encodeURIComponent(TODAYIDEA.t))}
+  else if(act==="exadd"){const v=await ask("Paste the link of the product you found. It will be added to Follow up Products of "+(st.v.nm?"\""+st.v.nm+"\"":"your current product")+".",{input:true,value:"",ok:"Add"});if(v==null)return;const l=String(v).trim();if(!/^https?:\/\//i.test(l)){toast("This does not look like a web link.");return}const a=fget();a.push({id:newPid(),name:nameFromLink(l)||(siteOf(l)+" product"),link:l,site:siteOf(l)});fput(a);toast("Added to Follow up Products.")}
+  else if(act==="another"){exOpen=false;const o=LS.get("pp_idoff",{}),day=TODAY(),seen=LS.get("pp_idseen",{});if(TODAYIDEA)seen[TODAYIDEA.t.toLowerCase()]=Date.now();LS.set("pp_idseen",seen);LS.set("pp_idoff",{d:day,n:(o.d===day?o.n:0)+1});TODAYIDEA=await ideaOfDay();refreshIdea()}
   else if(act==="startnow"){if(TODAYIDEA){const seen=LS.get("pp_idseen",{});seen[TODAYIDEA.t.toLowerCase()]=Date.now();LS.set("pp_idseen",seen);await startIdea(TODAYIDEA.t)}}
   else if(act==="ask"){if(TODAYIDEA){advOpen();advText("What are good Etsy tags for "+TODAYIDEA.t+"?")}}
   else if(act==="start"){const x=ideas().find(y=>y.id===id);if(x){upd(y=>{y.started=Date.now()});await startIdea(x.t)}}
@@ -3051,6 +3073,87 @@ BTA["sp.addnew"]=async()=>{const nw=spNew();if(!nw.length)return;let ev=[];nw.fo
 BTA["sp.seen"]=()=>{spSeen();btRe()};
 setTimeout(()=>{try{const S0=bts("sp");if(!S0.auto)return;const nw=spNew(),day=new Date().toISOString().slice(0,10);if(nw.length&&LS.get("pp_sptoast","")!==day){LS.set("pp_sptoast",day);toast("New seasonal date: "+nw[0].n+" ("+ymd(nw[0].d)+"). Open Business tools, Seasonal planner, to add it to your calendar.")}}catch(e){}},5000);
 try{placeAnim();resPrint();pdetInject();dlButtons();baButtons();avBtn()}catch(e){}
+})();
+
+
+/* ===== V41: examples, follow-up prices, page 3 table ===== */
+(function(){
+const DAY=864e5;
+const cur=()=>{try{return money(0).replace(/[\d.,\s]/g,"")||"$"}catch(e){return"$"}};
+function fuSync(){
+  const items=fget(),r=tbGet("tb3");let ch=false;
+  const ids=new Set(items.map(x=>"f:"+x.id));
+  r.forEach((row,i)=>{if(row[3]&&String(row[3]).indexOf("f:")===0&&!ids.has(row[3])){r[i]=["","","",""];ch=true}});
+  items.forEach(it=>{
+    if(!(String(it.name||"").trim()||it.link))return;
+    const nm=String(it.name||"").trim()||(it.site||siteOf(it.link||""))+" product",site=it.link?(it.site||siteOf(it.link)):"",pr=String(it.price||"").trim();
+    let k=r.findIndex(x=>x[3]==="f:"+it.id);
+    if(k<0){k=r.findIndex(x=>!String(x[0]||"").trim()&&!String(x[1]||"").trim()&&!String(x[2]||"").trim()&&!x[3]);
+      if(k<0){r.push(["","","",""]);k=r.length-1}
+      r[k]=[nm,site,pr,"f:"+it.id];ch=true}
+    else{const o=r[k].join("|");r[k][0]=nm;if(site)r[k][1]=site;if(pr)r[k][2]=pr;if(r[k].join("|")!==o)ch=true}
+  });
+  if(ch){st.v.tb3=r;save()}
+}
+/* ---------- Follow up page ---------- */
+function ago(t){const d=Math.floor((Date.now()-t)/DAY);return d<=0?"today":d===1?"yesterday":d+" days ago"}
+followView=function(){
+  const it=fget();
+  A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+
+  it.map(f=>{const site=f.link?(f.site||siteOf(f.link)):"";
+    const lk=f.link?`<span class="sbg s-${esc(site)}">${esc(site)}</span><span class="sp"></span><button class="g" data-act="fopen" data-id="${f.id}">Open link</button><button class="g" data-act="flink" data-id="${f.id}" aria-label="Edit link">&#9998;</button>`:`<button class="p" data-act="flink" data-id="${f.id}">+ Add link</button><span class="sp"></span>`;
+    let pr="";
+    if(f.link){const old=f.price&&f.pd&&Date.now()-f.pd>30*DAY;
+      pr=`<label class="fpr">Price (${esc(cur())})<input type="text" inputmode="decimal" data-fp="${f.id}" value="${esc(f.price||"")}" placeholder="Type the price" aria-label="Price"></label><small class="${old?"old":""}">${f.price&&f.pd?(old?"Check this price again. Last updated "+ago(f.pd)+".":"Price updated "+ago(f.pd)+"."):"Open the link, find the price and type it here."}</small>`}
+    return `<div class="fr fr41"><div class="fl">${lk}<button class="g" data-act="fdel" data-id="${f.id}" aria-label="Remove product">&times;</button></div><input class="fn" type="text" data-fn="${f.id}" value="${esc(f.name)}" placeholder="Product name" aria-label="Product name">${pr}</div>`}).join("")+
+  `${it.length?"":'<p class="act">No products yet. Tap "Add product" to start.</p>'}<div class="nav"><button class="p" data-act="fadd">+ Add product</button></div>${tipsHTML("f")}<div class="nav"><button class="p" data-act="save">Save the Product</button></div></div>`+navHTML();
+};
+A.addEventListener("input",e=>{const id=e.target.dataset&&e.target.dataset.fp;if(!id)return;
+  const a=fget(),it=a.find(x=>x.id===id);if(!it)return;it.price=e.target.value.trim();it.pd=it.price?Date.now():0;fput(a);
+  const sm=e.target.closest(".fr").querySelector("small");if(sm){sm.className="";sm.textContent=it.price?"Price updated today.":"Open the link, find the price and type it here."}});
+/* ---------- page 3 ---------- */
+function prices(){return tbGet("tb3").map(r=>num(r[2])).filter(x=>x>0)}
+function statHTML(){
+  const p=prices();let h="";
+  if(p.length<3)h=`<div>${p.length} price${p.length===1?"":"s"} so far. Add at least 3 for a reliable average.</div>`;
+  else{const lo=Math.min(...p),hi=Math.max(...p),av=p.reduce((a,b)=>a+b,0)/p.length;
+    h=`<div><b>Lowest:</b> ${money(lo)} &middot; <b>Average:</b> ${money(av)} &middot; <b>Highest:</b> ${money(hi)} <small>(${p.length} prices)</small></div>`;
+    const my=n("pr9");
+    if(my>0){const d=Math.round((my/av-1)*100);
+      if(d>=30)h+=`<div class="w">Your planned price ${money(my)} is ${d}% above the average. Make sure your product is clearly better or different.</div>`;
+      else if(d<=-30)h+=`<div class="w">Your planned price ${money(my)} is ${-d}% below the average. Check that you still cover your costs.</div>`}}
+  return h+`<div class="ab"><button class="g" data-p41="csv">&#11015; Download table</button><button class="g" data-p41="print">Print table</button></div>`}
+function csvOf(){const q=s=>'"'+String(s||"").replace(/"/g,'""')+'"';
+  return "﻿"+["Product","Shop","Price"].map(q).join(",")+"\r\n"+tbGet("tb3").filter(r=>r.slice(0,3).some(x=>String(x||"").trim())).map(r=>r.slice(0,3).map(q).join(",")).join("\r\n")}
+function placeStat(){
+  const tw=A.querySelector('.tw[data-t="tb3"]');if(!tw)return;
+  let el=A.querySelector("#pstat");
+  if(!el){el=document.createElement("div");el.id="pstat";el.className="pstat";tw.after(el)}else if(el.previousElementSibling!==tw)tw.after(el);
+  el.innerHTML=statHTML();
+}
+function placeFupl(){
+  if(st.i!==2)return;
+  const tw=A.querySelector('.tw[data-t="tb3"]'),fu=A.querySelector("#fupl");if(!tw||!fu)return;
+  const lab=tw.previousElementSibling;if(!lab)return;
+  if(!fu.querySelector(".fsg")){const p=document.createElement("p");p.className="act fsg";p.textContent="Open the follow up products page and add 3 or more similar products from web";fu.prepend(p);
+    const nav=fu.querySelector(".nav"),tip=fu.querySelector(".tipw");if(nav&&tip)fu.insertBefore(nav,tip)}
+  if(fu.nextElementSibling!==lab)lab.before(fu);
+}
+function post(){try{placeFupl()}catch(e){}try{placeStat()}catch(e){}}
+{const _r=render;render=function(){
+  try{if(st.w&&!st.m&&!st.f&&!st.p&&!st.l&&!st.r&&!st.g&&st.i===2)fuSync()}catch(e){}
+  _r();post()}}
+{const _v=v27inject;v27inject=function(){_v();post()}}
+A.addEventListener("input",e=>{if(e.target.dataset&&e.target.dataset.tb==="tb3"){const el=A.querySelector("#pstat");if(el)el.innerHTML=statHTML()}});
+A.addEventListener("click",async e=>{
+  const a=e.target.closest&&e.target.closest("[data-act]");if(a&&/^(addrow|rmrow|lowfrom)$/.test(a.dataset.act))setTimeout(post,60);
+  const b=e.target.closest&&e.target.closest("[data-p41]");if(!b)return;
+  if(b.dataset.p41==="csv"){dl("similar-products.csv",new Blob([csvOf()],{type:"text/csv"}));toast("Table saved. Open it with Excel or Sheets.")}
+  else{const bl=new Blob([csvOf()],{type:"text/csv"}),w=mkViewer("Similar products and prices",bl,"similar-products.csv"),rows=tbGet("tb3").filter(r=>r.slice(0,3).some(x=>String(x||"").trim()));
+    w.querySelector(".vb").innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Product</th><th align="left">Shop</th><th align="left">Price</th></tr></thead><tbody>'+rows.map(r=>"<tr>"+r.slice(0,3).map(x=>'<td style="border-top:1px solid #8886;padding:6px 4px">'+esc(x)+"</td>").join("")+"</tr>").join("")+"</tbody></table>";
+    setTimeout(()=>{try{printViewer()}catch(x){}},400)}
+});
+try{post()}catch(e){}
 })();
 
 </script>
