@@ -411,6 +411,22 @@ body::before{animation:kbb 20s ease-in-out infinite alternate}
 .idr{flex:1 1 100%;order:3;display:flex;flex-direction:column;gap:2px}
 .idr input{width:100%}
 .idform input[type=date]{width:100%}
+.pgan{display:block;width:100%;max-width:318px;aspect-ratio:636/104;height:auto;margin:8px auto}
+@media (prefers-reduced-motion:reduce){.pgan{display:none}}
+.vwr .vh{flex-wrap:wrap}.vwr .vh b{min-width:40%}
+@media print{
+ html,body.pvw{background:#fff!important}
+ body.pvw::before,body.pvw::after,html::before,html::after{display:none!important;content:none!important}
+ body.pvw>*:not(.vwr){display:none!important}
+ body.pvw .vwr{position:static!important;inset:auto!important;height:auto!important;max-height:none!important;overflow:visible!important;background:#fff!important;display:block!important}
+ body.pvw .vwr .vh{display:none!important}
+ body.pvw .vwr .vb{overflow:visible!important;height:auto!important;max-height:none!important;padding:0!important}
+ body.pvw .vwr *{color:#000!important;background:transparent!important}
+ body.pvw .vwr .vt{white-space:pre-wrap!important;word-break:break-word}
+ body.pvw .vwr .vtw{overflow:visible!important}
+ body.pvw .vwr .vtb td{border:1px solid #888!important;padding:3px 5px}
+ body.pvw .vwr .vb.pdf canvas{page-break-after:always;max-width:100%!important;height:auto!important}
+}
 </style>
 </head>
 <body>
@@ -523,9 +539,9 @@ async function refreshAtt(){
   fs.sort((a,b)=>a.added-b.added);urls.forEach(u=>URL.revokeObjectURL(u));urls=[];
   const U=f=>{const u=URL.createObjectURL(f.blob);urls.push(u);return u},im=f=>f.type.startsWith("image/");
   const th=document.getElementById("pthumb");if(th){let f=null;for(const sl of ["icon","proto","design","sketch","other"]){f=fs.filter(x=>x.slot===sl&&im(x))[0];if(f)break}if(f){th.src=U(f);th.hidden=false}else th.hidden=true}
-  sl.forEach(el=>{el.innerHTML=fs.filter(f=>f.slot===el.dataset.slot).map(f=>im(f)?`<div class="th"><img src="${U(f)}" alt="${esc(f.name)}" data-act="of" data-key="${esc(f.key)}"><button class="x" data-act="rm" data-key="${esc(f.key)}" aria-label="Remove">&times;</button></div>`:`<div class="row"><span>${esc(f.name)} (${kb(f.size)})</span><span><button class="g" data-act="of" data-key="${esc(f.key)}">Open</button> <button class="g" data-act="rm" data-key="${esc(f.key)}">Remove</button></span></div>`).join("")});
+  sl.forEach(el=>{el.innerHTML=fs.filter(f=>f.slot===el.dataset.slot).map(f=>im(f)?`<div class="th"><img src="${U(f)}" alt="${esc(f.name)}" data-act="of" data-key="${esc(f.key)}"><button class="x" data-act="rm" data-key="${esc(f.key)}" aria-label="Remove">&times;</button></div>`:`<div class="row"><span>${esc(f.name)} (${kb(f.size)})</span><span><button class="g" data-act="of" data-key="${esc(f.key)}">Open</button> ${ppBtn(f)}<button class="g" data-act="rm" data-key="${esc(f.key)}">Remove</button></span></div>`).join("")});
   gl.forEach(el=>{const g=fs.filter(f=>f.slot===el.dataset.gal&&im(f));el.innerHTML=g.length?`<h3>${SG[el.dataset.gal]}</h3><div class="gl">${g.map(f=>`<img src="${U(f)}" alt="" data-act="of" data-key="${esc(f.key)}">`).join("")}</div>`:""});
-  if(dc)dc.innerHTML=fs.length?fs.map(f=>`<div class="row"><span>${SL[f.slot]||"File"}: ${esc(f.name)}</span><button class="g" data-act="of" data-key="${esc(f.key)}">Open</button></div>`).join(""):'<p class="act">No files attached yet.</p>';baFill(fs,U,im);
+  if(dc)dc.innerHTML=fs.length?fs.map(f=>`<div class="row"><span>${SL[f.slot]||"File"}: ${esc(f.name)}</span><button class="g" data-act="of" data-key="${esc(f.key)}">Open</button>${ppBtn(f)}</div>`).join(""):'<p class="act">No files attached yet.</p>';baFill(fs,U,im);
 }
 function withState(v,c,fn){const a=st.v,b=st.c;st.v=v;st.c=c;try{return fn()}finally{st.v=a;st.c=b}}
 async function buildTxt(rec){
@@ -577,6 +593,7 @@ async function importTxt(file){
   }catch(e){toast("This file is not a Product Path save file.")}
 }
 function listView(){
+  {const _s=LS.get("pp_sort",null);if(_s&&_s.k){st.sk=_s.k;st.sd=_s.d||null}}
   A.innerHTML=`<div class="card">${ill(15)}<div class="num">Product Path Files</div><h2>Your saved products</h2><p class="act">All saved products are kept inside the app. Tap a product to open it.</p><div class="vw"><button class="g ${LS.get("pp_view","list")==="list"?"on":""}" data-act="vw" data-v="list">&#9776; List</button><button class="g ${LS.get("pp_view","list")==="grid"?"on":""}" data-act="vw" data-v="grid">&#9638; Grid</button></div><div class="srt"><label>Sort by <select id="sortk"><option value="saved">Newest saved</option><option value="sku">SKU</option><option value="name">Product name</option><option value="price">Retail price</option><option value="profit">Profit per item</option></select></label><button class="g" id="sortd"></button></div><div class="prow hd"${LS.get("pp_view","list")==="grid"?' style="display:none"':""}><span></span><span>Product / SKU</span><span>Retail price</span><span>Profit per item</span></div><div id="plist"><p class="act">Loading...</p></div><div class="nav"><button class="p" data-act="new">Start a New Product</button></div><div class="nav"><button data-act="import">Open from TXT file</button></div>${tipsHTML("l")}</div>`+navHTML();
   document.getElementById("sortk").value=st.sk||"saved";
   loadList();
@@ -642,7 +659,7 @@ function moreView(){
   else if(m==="plan")h+=ill(12)+'<div class="num">Launch plan</div><h2>When will you do it?</h2><p class="act">Pick a date for each milestone. Dates are saved with your product.</p>'+MIL.map((t,j)=>{const v=st.v["d"+j],dd=v?Math.round((new Date(v+"T00:00:00")-new Date(new Date().toDateString()))/864e5):null;return `<label class="f">${t}<input type="date" data-f="d${j}" value="${esc(v)}"></label>`+(dd==null||isNaN(dd)?"":`<small class="act">${dd>0?"in "+dd+" days":dd===0?"today":-dd+" days ago"}</small>`)}).join("");
   else if(m==="legal")h+=ill(5)+'<div class="num">Legal and safety</div><h2>Before you sell</h2><p class="act">General information only, not legal advice. Rules differ by country. Ask a professional or your local authority if you are unsure.</p><p class="okmsg" id="lgc"></p>'+LEG.map((t,j)=>`<label class="ck"><input type="checkbox" data-c="L${j}" ${st.c["L"+j]?"checked":""}><span>${esc(t)}</span></label>`).join("");
   else if(m==="help")h+=ill(1)+'<div class="num">Help</div><h2>Questions and glossary</h2><h3>Questions</h3>'+FQ.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("")+'<h3>Glossary</h3>'+GL.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("");
-  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.39 (build 39) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
+  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.40 (build 40) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
   h+='<div class="nav">'+(m!=="more"?'<button data-act="m" data-m="more">Menu</button>':"")+'<button class="p" data-act="mback">Back to my product</button></div></div>';
   A.innerHTML=h;updOk();
 }
@@ -801,7 +818,7 @@ A.addEventListener("input",e=>{const fnn=e.target.dataset.fn;if(fnn){const a=fge
     if(k==="mc6"||k==="pc6"){const a=n("mc6"),b=n("pc6");st.v.m6=(isNaN(a)&&isNaN(b))?"":String(Math.round(((isNaN(a)?0:a)+(isNaN(b)?0:b))*100)/100);const t=A.querySelector('[data-f="m6"]');if(t)t.value=st.v.m6}
     if(k==="pr9"){sync9();const t=A.querySelector('[data-f="m9"]');if(t)t.value=st.v.m9}
     save();hint();updOk()}});
-A.addEventListener("change",e=>{if(e.target.id==="sortk"){st.sk=e.target.value;st.sd=null;save();loadList();return}
+A.addEventListener("change",e=>{if(e.target.id==="sortk"){st.sk=e.target.value;st.sd=null;LS.set("pp_sort",{k:st.sk,d:null});save();loadList();return}
   const k=e.target.dataset.c;if(k){st.c[k]=e.target.checked;save();updOk()}});
 A.addEventListener("click",e=>{
   const ac=e.target.closest("[data-act]");if(ac){act(ac.dataset.act,ac);return}
@@ -813,7 +830,7 @@ A.addEventListener("click",e=>{
   else if(id==="go"){st.w=true;st.i=0;st.r=false;save();render()}
   else if(id==="cont"){st.w=true;save();render()}
   else if(id==="bk"){st.i--;save();render()}
-  else if(id==="sortd"){st.sd=sdir()==="desc"?"asc":"desc";save();loadList()}
+  else if(id==="sortd"){st.sd=sdir()==="desc"?"asc":"desc";LS.set("pp_sort",{k:st.sk||"saved",d:st.sd});save();loadList()}
   else if(id==="jump"){st.r=true;st.g=false;st.m=null;save();render()}
   else if(id==="bk2"){st.r=false;st.g=true;save();render()}
   else if(id==="pr"){window.print()}
@@ -1578,9 +1595,9 @@ async function xlsxRows(buf){const z=await unzipAll(buf);let ss=[];if(z["xl/shar
     const t=(c.match(/ t="(\w+)"/)||[])[1],v=(c.match(/<v>([\s\S]*?)<\/v>/)||[])[1],is=(c.match(/<is>[\s\S]*?<\/is>/)||[])[0];let val="";
     if(t==="s")val=ss[+v]||"";else if(t==="inlineStr"&&is)val=xdec(is.replace(/<[^>]+>/g,""));else if(v!=null)val=xdec(v);row[ci]=val});rows.push(row)});return rows}
 function mkViewer(title,blob,name){const w=document.createElement("div");w.className="vwr";w.setAttribute("role","dialog");w.setAttribute("aria-label",title);
-  w.innerHTML='<div class="vh"><b></b><button class="g" data-v="share">Open with...</button><button class="g" data-v="save">Save</button><button class="g" data-v="x" aria-label="Close">&times;</button></div><div class="vb"><p class="act">Opening...</p></div>';w.querySelector("b").textContent=title;
+  w.innerHTML='<div class="vh"><b></b><button class="g" data-v="share">Open with...</button><button class="g" data-v="print">Print</button><button class="g" data-v="save">Save</button><button class="g" data-v="x" aria-label="Close">&times;</button></div><div class="vb"><p class="act">Opening...</p></div>';w.querySelector("b").textContent=title;
   const close=()=>{w.remove()};w._close=close;
-  w.addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;if(b.dataset.v==="x")close();else if(b.dataset.v==="save")dl(name,blob);else if(b.dataset.v==="share"){const f=new File([blob],name||"file",{type:blob.type||"application/octet-stream"});(async()=>{try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:name});else{dl(name,blob);toast("This phone cannot open it from here. The file was saved instead.")}}catch(x){if(x&&x.name!=="AbortError")dl(name,blob)}})()}});
+  w.addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;if(b.dataset.v==="x")close();else if(b.dataset.v==="print")printViewer();else if(b.dataset.v==="save")dl(name,blob);else if(b.dataset.v==="share"){const f=new File([blob],name||"file",{type:blob.type||"application/octet-stream"});(async()=>{try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:name});else{dl(name,blob);toast("This phone cannot open it from here. The file was saved instead.")}}catch(x){if(x&&x.name!=="AbortError")dl(name,blob)}})()}});
   document.body.appendChild(w);return w}
 const esc2=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 async function openFile(key){
@@ -2899,6 +2916,141 @@ setTimeout(()=>{try{handleGo()}catch(e){}},50);
 /* due reminders: a short message when the app opens */
 setTimeout(()=>{try{const d=dueIdeas();if(d.length){const k="pp_remtoast",t=TODAY();if(LS.get(k,"")!==t){LS.set(k,t);toast("Time to start an idea: "+d[0].t)}}}catch(e){}},1500);
 try{if(!st.w)render()}catch(e){}
+})();
+
+</script>
+<script>
+/* ===== V40 ===== */
+(function(){
+"use strict";
+ATTC.pdet={s:"pdet",l:"Product details document (Word, optional)",k:"doc"};SL.pdet="Product details (Word)";
+/* ---------- page animations ---------- */
+function animKey(){
+  if(!st.w)return"welcome";
+  if(st.m||st.l||st.r)return null;
+  if(st.f)return"followup";
+  if(st.p)return"goals";
+  if(st.g)return"legal";
+  return"step"+String(st.i+1).padStart(2,"0");
+}
+function placeAnim(){
+  const key=animKey();if(!key||A.querySelector(".pgan"))return;
+  const card=A.querySelector(".card");if(!card)return;
+  let at=null;
+  if(key==="welcome")at=[...card.children].find(e=>e.classList&&e.classList.contains("nav"));
+  else if(key==="legal")at=card.querySelector(".ck");
+  else at=(key.indexOf("step")===0?card.querySelector('.tipw[data-tk="s'+st.i+'"]'):null)||card.querySelector(".tipw");
+  if(!at||!at.parentNode)return;
+  const img=document.createElement("img");img.className="pgan";img.alt="";img.setAttribute("aria-hidden","true");img.decoding="async";
+  img.onerror=()=>img.remove();img.src="anim/"+key+".webp";
+  at.parentNode.insertBefore(img,at);
+}
+/* ---------- Results: print button at the bottom ---------- */
+function resPrint(){
+  if(!st.r||!st.w||st.m||A.querySelector("#prb"))return;
+  const c=A.querySelector(".card");if(c)c.insertAdjacentHTML("beforeend",'<div class="nav" id="prb"><button class="p" id="pr2">Print on my printer</button></div><p class="act" style="font-size:.8rem">Your phone shows the printers it can reach over Wi-Fi. You can also choose Save as PDF.</p>');
+}
+{const _r=render;render=function(){_r();try{placeAnim()}catch(e){}try{resPrint()}catch(e){}}}
+/* ---------- step 13: Product details ---------- */
+function pdetInject(){
+  if(!st.w||st.m||st.f||st.p||st.l||st.r||st.g||st.i!==12||A.querySelector("#pdb"))return;
+  const t=A.querySelector("#ttlsug");if(!t)return;
+  t.insertAdjacentHTML("afterend",'<div id="pdb"><label class="f">Product details<textarea data-f="pdt" placeholder="Size, materials, care instructions, what is included">'+esc(st.v.pdt||"")+'</textarea></label>'+attHTML(ATTC.pdet)+'</div>');
+  refreshAtt();
+}
+{const _v=v27inject;v27inject=function(){_v();try{pdetInject()}catch(e){}}}
+/* ---------- zip, download, print ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}})();
+async function makeZip(files){
+  const enc=new TextEncoder(),parts=[],cen=[];let off=0,csz=0;
+  const now=new Date(),dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF,dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  for(const f of files){
+    const data=new Uint8Array(await f.blob.arrayBuffer()),nm=enc.encode(f.name),crc=CRC(data);
+    const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,dt,true);lh.setUint16(12,dd,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,nm.length,true);
+    parts.push(lh.buffer,nm,data);
+    const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(12,dt,true);ch.setUint16(14,dd,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+    cen.push(ch.buffer,nm);csz+=46+nm.length;off+=30+nm.length+data.length;
+  }
+  const end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,csz,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...cen,end.buffer],{type:"application/zip"});
+}
+function uniq(fs){const used=new Set();return fs.map((f,i)=>{const base=f.name||("file-"+(i+1)),m=/^(.*?)(\.[^.]*)?$/.exec(base);let n=base,k=1;while(used.has(n.toLowerCase()))n=m[1]+"-"+(++k)+(m[2]||"");used.add(n.toLowerCase());return{name:n,blob:f.blob}})}
+async function dlSlot(slot){
+  let fs=[];try{fs=(await filesOf(st.pid)).filter(f=>f.slot===slot).sort((a,b)=>a.added-b.added)}catch(e){toast("File storage is not available.");return}
+  if(!fs.length){toast("Nothing to download yet.");return}
+  if(fs.length===1){dl(fs[0].name||"file",fs[0].blob);toast("Downloaded. Look in your Downloads folder.");return}
+  const nm=String(st.v.nm||"product").replace(/[^\w\-]+/g,"_").slice(0,40)||"product";
+  dl(nm+"-"+slot+".zip",await makeZip(uniq(fs)));toast("Downloaded "+fs.length+" files as one zip file.");
+}
+function dlButtons(){
+  document.querySelectorAll(".att .al[data-slot]").forEach(al=>{
+    const ab=al.parentElement&&al.parentElement.querySelector(".ab");if(!ab)return;
+    const b=ab.querySelector("[data-ppdl]"),has=al.children.length>0;
+    if(has&&!b)ab.insertAdjacentHTML("beforeend",'<button class="g" data-ppdl="'+al.dataset.slot+'">&#11015; Download</button>');
+    else if(!has&&b)b.remove();
+  });
+}
+async function baButtons(){
+  const ba=document.getElementById("ba");if(!ba||!ba.closest(".att"))return;
+  const ab=[...ba.closest(".att").querySelectorAll(".ab")].pop();if(!ab)return;
+  let fs=[];try{fs=await filesOf(st.pid)}catch(e){return}
+  [["bef","Download Before"],["aft","Download After"]].forEach(([k,l])=>{const has=fs.some(f=>f.slot===k),b=ab.querySelector('[data-ppdl="'+k+'"]');
+    if(has&&!b)ab.insertAdjacentHTML("beforeend",'<button class="g" data-ppdl="'+k+'">&#11015; '+l+'</button>');else if(!has&&b)b.remove()});
+}
+{const _ra=refreshAtt;refreshAtt=async function(){await _ra.apply(this,arguments);dlButtons();await baButtons()}}
+window.ppBtn=function(f){return /\.(docx?|xlsx?|xlsm|csv|txt|pdf)$/i.test(f.name||"")?'<button class="g" data-ppp="'+esc(f.key)+'">Print</button> ':""};
+function printViewer(){
+  document.body.classList.add("pvw");
+  const off=()=>{document.body.classList.remove("pvw");removeEventListener("afterprint",off)};
+  addEventListener("afterprint",off);setTimeout(off,3500);
+  window.print();
+}
+window.printViewer=printViewer;
+async function printKey(key){
+  await openFile(key);
+  const w=[...document.querySelectorAll(".vwr")].pop();
+  if(!w){toast("This file could not be opened for printing.");return}
+  if(/could not be shown|cannot be shown/.test(w.textContent)){toast("This file cannot be printed from here. Use Open with another app and print from there.");return}
+  setTimeout(printViewer,250);
+}
+/* avatar picture download */
+function avBtn(){
+  const clr=A.querySelector('[data-act="avclr"]');if(!clr)return;
+  let has=false;try{has=PF().k==="i"}catch(e){}
+  const b=clr.parentElement.querySelector("[data-ppav]");
+  if(has&&!b)clr.insertAdjacentHTML("afterend",'<button class="g" data-ppav="1">&#11015; Download</button>');
+  else if(!has&&b)b.remove();
+}
+new MutationObserver(()=>{try{avBtn()}catch(e){}}).observe(A,{childList:true,subtree:true});
+document.addEventListener("click",async e=>{
+  const t=e.target.closest&&e.target.closest("[data-ppdl],[data-ppp],[data-ppav],#pr2");if(!t)return;
+  try{
+    if(t.id==="pr2"){window.print();return}
+    if(t.dataset.ppdl)await dlSlot(t.dataset.ppdl);
+    else if(t.dataset.ppp)await printKey(t.dataset.ppp);
+    else if(t.dataset.ppav){const p=PF();if(p.k==="i"&&p.v){dl("my-picture.jpg",fromURL(p.v));toast("Downloaded. Look in your Downloads folder.")}}
+  }catch(x){toast("Something went wrong. Try again.")}
+});
+/* ---------- sort choice of Your saved products is remembered (see patch) ---------- */
+/* ---------- Seasonal planner ---------- */
+spList=function(){const now=new Date();now.setHours(0,0,0,0);const y=now.getFullYear(),L=[];[0,1,2].forEach(k=>seasons(y+k).forEach(s=>{if(s[1]>=now)L.push({k:s[0]+" "+(y+k),n:s[0],d:s[1]})}));L.sort((a,b)=>a.d-b.d);return L.slice(0,16)};
+const spKey=s=>s.k.replace(/\W/g,"_");
+function spPrune(){const S0=bts("sp"),L=spList(),keys=new Set(L.map(spKey));let ch=false;const o={};Object.keys(S0.sel||{}).forEach(k=>{if(keys.has(k))o[k]=S0.sel[k];else ch=true});if(ch){S0.sel=o;LS.set("pp_bt_sp",S0)}return{S0,L}}
+function spNew(){const{S0,L}=spPrune();if(!Array.isArray(S0.seen)){S0.seen=L.map(spKey);LS.set("pp_bt_sp",S0);return[]}return L.filter(s=>S0.seen.indexOf(spKey(s))<0)}
+function spSeen(){const S0=bts("sp");S0.seen=spList().map(spKey);LS.set("pp_bt_sp",S0)}
+function spEvents(s){const ev=[],t0=new Date().setHours(0,0,0,0);[[-70,"Stock ready"],[-42,"Listing live"],[-21,"Start promotion"]].forEach(a=>{const d=addDays(s.d,a[0]);if(d>=t0)ev.push({t:a[1]+" for "+s.n,d:ymd(d),tm:"09:00",desc:s.n+" is on "+ymd(s.d)})});ev.push({t:s.n,d:ymd(s.d),tm:"09:00"});return ev}
+BTV.sp={view(){
+  const{S0,L}=spPrune(),nw0=spNew(),nw=S0.auto?nw0:[];if(!S0.auto)spSeen();
+  return'<p class="act" style="font-size:.85rem">Dates for the next 12 months. Stock should be ready 10 weeks before, listings live 6 weeks before and promotion 3 weeks before. The list updates itself: when a date has passed it disappears and the next date is added at the end. Dates of Hanukkah, Ramadan, Lunar New Year and similar events change every year, so add them in your own reminders.</p>'
+  +(nw.length?'<div class="remb"><b>New date'+(nw.length>1?"s":"")+' at the end of your list</b><div>'+nw.map(s=>esc(s.n)+" &middot; "+ymd(s.d)).join("<br>")+'</div><div class="ab"><button class="p" data-bta="sp.addnew">Add to my calendar</button><button class="g" data-bta="sp.seen">Not now</button></div></div>':"")
+  +'<label class="ck"><input type="checkbox" data-bt="sp|auto" '+(S0.auto?"checked":"")+'><span>Offer to add new dates to my calendar automatically</span></label><p class="act" style="font-size:.8rem">A phone does not let an app write to your calendar by itself. When a new date appears, the app asks you once and one tap adds it.</p>'
+  +L.map(s=>{const days=Math.round((s.d-new Date().setHours(0,0,0,0))/864e5),late=days<70,k=spKey(s);return'<div class="bti"><label class="ck"><input type="checkbox" data-bt="sp|sel.'+esc(k)+'" '+((S0.sel||{})[k]?"checked":"")+'><span><b>'+esc(s.n)+'</b> &middot; '+ymd(s.d)+' &middot; in '+days+' days</span></label><div class="act" style="font-size:.82rem">Stock ready by '+ymd(addDays(s.d,-70))+' &middot; listing live by '+ymd(addDays(s.d,-42))+' &middot; promotion from '+ymd(addDays(s.d,-21))+(late?" <b style='color:#dc2626'>(start now)</b>":"")+'</div><div class="ab"><button class="g" data-bta="sp.one" data-k="'+esc(k)+'">Add this date to my calendar</button></div></div>'}).join("")
+  +btnav(bbtn("sp.go","Add ticked seasons to my calendar","p"))+'<p class="act" style="font-size:.82rem">Tick the seasons that fit your product.</p>'}};
+BTA["sp.one"]=async b=>{const s=spList().find(x=>spKey(x)===b.dataset.k);if(!s)return;await btSend(btIcs(spEvents(s)),"season-"+s.n.replace(/\W+/g,"-").toLowerCase()+".ics",s.n)};
+BTA["sp.addnew"]=async()=>{const nw=spNew();if(!nw.length)return;let ev=[];nw.forEach(s=>{ev=ev.concat(spEvents(s))});await btSend(btIcs(ev),"new-seasons.ics","New seasonal dates");spSeen();btRe()};
+BTA["sp.seen"]=()=>{spSeen();btRe()};
+setTimeout(()=>{try{const S0=bts("sp");if(!S0.auto)return;const nw=spNew(),day=new Date().toISOString().slice(0,10);if(nw.length&&LS.get("pp_sptoast","")!==day){LS.set("pp_sptoast",day);toast("New seasonal date: "+nw[0].n+" ("+ymd(nw[0].d)+"). Open Business tools, Seasonal planner, to add it to your calendar.")}}catch(e){}},5000);
+try{placeAnim();resPrint();pdetInject();dlButtons();baButtons();avBtn()}catch(e){}
 })();
 
 </script>
