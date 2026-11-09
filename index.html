@@ -444,6 +444,8 @@ body::before{animation:kbb 20s ease-in-out infinite alternate}
 .pstat .w{color:#b45309;font-weight:700;margin-top:4px}
 .pstat .ab{margin-top:8px}
 #fupl .fsg{font-weight:700;margin:10px 0 4px}
+.exbox .ab>button{flex:1 1 40%}
+html{overflow-x:hidden}body{overflow-x:clip}
 </style>
 </head>
 <body>
@@ -3100,16 +3102,16 @@ function ago(t){const d=Math.floor((Date.now()-t)/DAY);return d<=0?"today":d===1
 let fsrch=false,fq=null;
 const fqDef=()=>(String(st.v.ttl||"").trim()||String(st.v.nm||"").trim());
 function srchHTML(){const q=fq==null?fqDef():fq;
-  return `<div class="exbox"><p class="act" style="margin:0"><b>Find similar products on:</b></p><input type="text" id="fq" value="${esc(q)}" placeholder="What to search for" aria-label="Search words" style="margin:6px 0"><div class="ab">${EXSITES.map(x=>`<button class="p" data-fs="${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The search starts with your listing title (step 13) or, if it is empty, your product name (step 1). You can change the words. The site opens in your browser. Copy the product link, come back and tap + Add link.</p></div>`}
+  return `<div class="exbox"><p class="act" style="margin:0"><b>Find similar products on:</b></p><input type="text" id="fq" value="${esc(q)}" placeholder="What to search for" aria-label="Search words" style="margin:6px 0"><div class="ab">${EXSITES.map(x=>`<button class="p" data-fs="${x[0]}">${x[1]}</button>`).join("")}</div><p class="act" style="font-size:.85rem;margin:8px 0 0">The search starts with your listing title (step 13) or, if it is empty, your product name (step 1). You can change the words. The site opens in your browser. Copy the product link, come back and tap + Add link below.</p></div>`}
 followView=function(){
-  const it=fget();
-  A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+(fsrch?srchHTML():"")+
-  it.map(f=>{const site=f.link?(f.site||siteOf(f.link)):"";
+  const it=fget(),tgt=fsrch?it.map((f,i)=>f.link?-1:i).filter(i=>i>=0).pop():-1;
+  A.innerHTML=`<div class="card">${ill(2)}<div class="num">Follow up</div><h2>Follow up Products</h2><p class="act">Products you watch for <b>${esc(st.v.nm||"this product")}</b>. Add the link first and the name fills in by itself. Then open the link, find the price and type it in. The app cannot read prices from other sites. Each product has its own list, saved with it.</p>`+
+  it.map((f,k)=>{const site=f.link?(f.site||siteOf(f.link)):"";
     const lk=f.link?`<span class="sbg s-${esc(site)}">${esc(site)}</span><span class="sp"></span><button class="g" data-act="fopen" data-id="${f.id}">Open link</button><button class="g" data-act="flink" data-id="${f.id}" aria-label="Edit link">&#9998;</button>`:`<button class="p" data-act="flink" data-id="${f.id}">+ Add link</button><span class="sp"></span>`;
     let pr="";
     if(f.link){const old=f.price&&f.pd&&Date.now()-f.pd>30*DAY;
       pr=`<label class="fpr">Price (${esc(cur())})<input type="text" inputmode="decimal" data-fp="${f.id}" value="${esc(f.price||"")}" placeholder="Type the price" aria-label="Price"></label><small class="${old?"old":""}">${f.price&&f.pd?(old?"Check this price again. Last updated "+ago(f.pd)+".":"Price updated "+ago(f.pd)+"."):"Open the link, find the price and type it here."}</small>`}
-    return `<div class="fr fr41"><div class="fl">${lk}<button class="g" data-act="fdel" data-id="${f.id}" aria-label="Remove product">&times;</button></div><input class="fn" type="text" data-fn="${f.id}" value="${esc(f.name)}" placeholder="Product name" aria-label="Product name">${pr}</div>`}).join("")+
+    return `<div class="fr fr41">${k===tgt?srchHTML():""}<div class="fl">${lk}<button class="g" data-act="fdel" data-id="${f.id}" aria-label="Remove product">&times;</button></div><input class="fn" type="text" data-fn="${f.id}" value="${esc(f.name)}" placeholder="Product name" aria-label="Product name">${pr}</div>`}).join("")+
   `${it.length?"":'<p class="act">No products yet. Tap "Add product" to start.</p>'}<div class="nav"><button class="p" data-act="fadd">+ Add product</button></div>${tipsHTML("f")}<div class="nav"><button class="p" data-act="save">Save the Product</button></div></div>`+navHTML();
 };
 A.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-act="fadd"]');if(b){fsrch=true;fq=null}},true);
@@ -3125,7 +3127,7 @@ function statHTML(){
   if(p.length<3)h=`<div>${p.length} price${p.length===1?"":"s"} so far. Add at least 3 for a reliable average.</div>`;
   else{const lo=Math.min(...p),hi=Math.max(...p),av=p.reduce((a,b)=>a+b,0)/p.length;
     h=`<div><b>Lowest:</b> ${money(lo)} &middot; <b>Average:</b> ${money(av)} &middot; <b>Highest:</b> ${money(hi)} <small>(${p.length} prices)</small></div>`;
-    const my=n("pr9");
+    const my=n("prc");
     if(my>0){const d=Math.round((my/av-1)*100);
       if(d>=30)h+=`<div class="w">Your planned price ${money(my)} is ${d}% above the average. Make sure your product is clearly better or different.</div>`;
       else if(d<=-30)h+=`<div class="w">Your planned price ${money(my)} is ${-d}% below the average. Check that you still cover your costs.</div>`}}
@@ -3162,6 +3164,7 @@ A.addEventListener("click",async e=>{
 });
 try{post()}catch(e){}
 })();
+(function(){const _r=render;render=function(){const x=window.scrollX;_r();if(window.scrollX||x)window.scrollTo(0,window.scrollY)}})();
 
 </script>
 </body>
