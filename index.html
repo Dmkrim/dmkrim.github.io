@@ -444,6 +444,7 @@ body::before{animation:kbb 20s ease-in-out infinite alternate}
 .exbox .ab>button{flex:1 1 40%}
 html{overflow-x:hidden}body{overflow-x:clip}
 .wss{width:min(50vw,360px);aspect-ratio:1/1;margin:12px auto;border-radius:14px;overflow:hidden;background:#fff;border:2px solid rgba(255,255,255,.35);cursor:pointer}.wss[hidden]{display:none}.wss img{display:block;width:100%;height:100%;object-fit:cover}
+.plc{border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:10px;margin:8px 0}.plc small{display:block;margin:2px 0 6px}.plc .nav{flex-wrap:wrap}
 .ipic{display:block;width:195px;max-width:100%;height:auto;aspect-ratio:1/1;margin:10px auto 6px;border-radius:12px;background:#fff}
 </style>
 </head>
@@ -569,9 +570,43 @@ async function buildTxt(rec){
   return "PRODUCT PATH SAVE FILE\nOpen it again in the app: Open Your Product > Open from TXT file.\nSaved: "+new Date(rec.saved).toLocaleString()+"\nPlease do not change anything after the DATA line.\n\n"+rt+(rec.v.fn?"\nNOTES\n"+rec.v.fn+"\n":"")+(fs.length?"\nATTACHED FILES\n"+fs.map(f=>"- "+(SL[f.slot]||"File")+": "+f.name).join("\n")+"\n":"")+"\n=== DATA (do not edit below this line) ===\n"+JSON.stringify(data)+"\n";
 }
 function ask(msg,o){o=o||{};return new Promise(res=>{const w=document.createElement("div");w.className="dlg";w.innerHTML='<div class="dbox" role="dialog" aria-modal="true"><b>Product Path says</b><p></p>'+(o.input?'<input type="text" class="dinp">':"")+'<div class="nav"><button class="dno">'+esc(o.no||"Cancel")+'</button><button class="p dyes">'+esc(o.ok||"OK")+'</button></div></div>';w.querySelector("p").textContent=msg;const inp=w.querySelector(".dinp");if(inp)inp.value=o.value||"";const done=v=>{w.remove();res(v)};w.querySelector(".dyes").onclick=()=>done(o.input?inp.value:true);w.querySelector(".dno").onclick=()=>done(o.input?null:false);document.body.appendChild(w);(inp||w.querySelector(".dyes")).focus()})}
+
+/* ---------- step 4: saved lists of parts and suppliers ---------- */
+const PLK="pp_plists";
+const plGet=()=>{const a=LS.get(PLK,[]);return Array.isArray(a)?a:[]};
+const plRows=()=>tbGet("tb4").filter(r=>r.some(x=>String(x||"").trim()));
+const plSum=rows=>{const t=rows.reduce((a,r)=>a+(rowTot(r)||0),0);return rows.length+(rows.length===1?" part":" parts")+(t>0?", total "+money(t):"")};
+function plistView(){
+  const L=plGet(),cur=plRows();
+  let h=ill(3)+'<div class="num">Saved lists</div><h2>Parts and suppliers lists</h2><p class="act">Save the list from step 4 with a name. Use it again later in this or another product.</p>';
+  h+='<h3>Your current list</h3><div class="row"><span>'+(cur.length?esc(plSum(cur)):"The list is empty")+'</span></div><div class="nav"><button class="p" data-act="pl_save">Save current list</button></div><h3>Saved lists</h3>';
+  h+=L.length?L.map(l=>`<div class="plc"><b>${esc(l.name)}</b><small class="act">${esc(plSum(l.rows))}. Saved ${esc(new Date(l.t).toLocaleDateString())}</small><div class="nav"><button class="p" data-act="pl_use" data-id="${esc(l.id)}">Use</button><button class="g" data-act="pl_ren" data-id="${esc(l.id)}">Rename</button><button class="g" data-act="pl_copy" data-id="${esc(l.id)}">Copy</button><button class="g" data-act="pl_del" data-id="${esc(l.id)}">Delete</button></div></div>`).join(""):'<p class="act">No saved lists yet. Fill the table in step 4 and tap Save current list.</p>';
+  return h;
+}
+async function plAct(a,id){
+  let L=plGet();const l=L.find(x=>x.id===id),nid=()=>"pl"+Date.now().toString(36)+Math.floor(Math.random()*1e3).toString(36);
+  if(a==="pl_save"){
+    const rows=plRows();if(!rows.length){toast("The list is empty. Add parts to the table first.");return}
+    let nm=await ask("Name for this list:",{input:true,value:st.v.nm?st.v.nm+" parts":"",ok:"Save"});if(nm==null)return;nm=nm.trim();if(!nm){toast("Please type a name.");return}
+    const ex=L.find(x=>x.name.toLowerCase()===nm.toLowerCase());
+    if(ex){if(!await ask('A list named "'+ex.name+'" already exists. Replace it?',{ok:"Replace"}))return;ex.rows=JSON.parse(JSON.stringify(rows));ex.t=Date.now()}
+    else L.unshift({id:nid(),name:nm,rows:JSON.parse(JSON.stringify(rows)),t:Date.now()});
+    LS.set(PLK,L);toast("List saved.");if(st.m==="plists")render();return}
+  if(!l)return;
+  if(a==="pl_use"){
+    if(plRows().length&&!await ask('Replace the list in step 4 with "'+l.name+'"?',{ok:"Replace"}))return;
+    st.v.tb4=JSON.parse(JSON.stringify(l.rows));sync6();save();st.m=null;render();toast("List loaded.");return}
+  if(a==="pl_ren"){let nm=await ask("New name:",{input:true,value:l.name,ok:"Rename"});if(nm==null)return;nm=nm.trim();if(!nm){toast("Please type a name.");return}
+    if(L.some(x=>x!==l&&x.name.toLowerCase()===nm.toLowerCase())){toast("Another list already has this name.");return}
+    l.name=nm;LS.set(PLK,L);render();return}
+  if(a==="pl_copy"){let nm=l.name+" (copy)",k=2;while(L.some(x=>x.name.toLowerCase()===nm.toLowerCase()))nm=l.name+" (copy "+(k++)+")";
+    L.splice(L.indexOf(l)+1,0,{id:nid(),name:nm,rows:JSON.parse(JSON.stringify(l.rows)),t:Date.now()});LS.set(PLK,L);toast("List copied.");render();return}
+  if(a==="pl_del"){if(!await ask('Delete the list "'+l.name+'"?',{ok:"Delete"}))return;LS.set(PLK,L.filter(x=>x!==l));render()}
+}
+
 async function saveProduct(silent){
   const nm=(st.v.nm||"").trim();
-  if(!nm){toast("Please enter a product name first.");const i=A.querySelector('[data-f="nm"]');if(i)i.focus();return null}
+  if(!nm){const i=A.querySelector('[data-f="nm"]');toast(i?"Please enter a product name first.":"Please enter a product name first. You can enter it in Step 1.");if(i)i.focus();return null}
   const o=calc(),rec={id:st.pid,name:nm,sku:(st.v.sku||"").trim(),thumb:await pickThumb(st.pid),thumbL:await pickThumb(st.pid,400),cur:cur(),price:Number.isFinite(o.price)?o.price:null,profit:Number.isFinite(o.unit)?o.unit:null,saved:Date.now(),v:JSON.parse(JSON.stringify(st.v)),c:JSON.parse(JSON.stringify(st.c))};
   await dbPut("products",rec);st.sv=snap();save();
   if(!silent)toast("Saved in Product Path Files.");
@@ -645,6 +680,7 @@ async function act(a,el){
     case"txt":{const r=await dbGet("products",d.id);await exportRec(r);break}
     case"import":pick(".txt,text/plain",false,fs=>importTxt(fs[0]));break;
     case"save":await saveProduct();break;
+    case"pl_save":case"pl_use":case"pl_ren":case"pl_copy":case"pl_del":await plAct(a,d.id);break;
     case"export":await exportProduct();break;
     case"cam":case"up":{const c=ATTC[d.s];pick(a==="cam"?"image/*":ACC[c.k],!!c.multi,fs=>addFiles(d.s,fs),a==="cam");break}
     case"of":await openFile(d.key);break;
@@ -678,7 +714,7 @@ function moreView(){
   else if(m==="plan")h+=ill(12)+'<div class="num">Launch plan</div><h2>When will you do it?</h2><p class="act">Pick a date for each milestone. Dates are saved with your product.</p>'+MIL.map((t,j)=>{const v=st.v["d"+j],dd=v?Math.round((new Date(v+"T00:00:00")-new Date(new Date().toDateString()))/864e5):null;return `<label class="f">${t}<input type="date" data-f="d${j}" value="${esc(v)}"></label>`+(dd==null||isNaN(dd)?"":`<small class="act">${dd>0?"in "+dd+" days":dd===0?"today":-dd+" days ago"}</small>`)}).join("");
   else if(m==="legal")h+=ill(5)+'<div class="num">Legal and safety</div><h2>Before you sell</h2><p class="act">General information only, not legal advice. Rules differ by country. Ask a professional or your local authority if you are unsure.</p><p class="okmsg" id="lgc"></p>'+LEG.map((t,j)=>`<label class="ck"><input type="checkbox" data-c="L${j}" ${st.c["L"+j]?"checked":""}><span>${esc(t)}</span></label>`).join("");
   else if(m==="help")h+=ill(1)+'<div class="num">Help</div><h2>Questions and glossary</h2><h3>Questions</h3>'+FQ.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("")+'<h3>Glossary</h3>'+GL.map(q=>`<details><summary>${esc(q[0])}</summary><p class="act">${esc(q[1])}</p></details>`).join("");
-  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.42 (build 42) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
+  else if(m==="prof")h+=profView();else if(m==="sand")h+=sandView();else if(m==="docb")h+=docbView();else if(m==="course"||m==="seo"||m==="ip")h+=courseHTML(m);else if(m==="bt")h+=btHub();else if(/^bt_/.test(m))h+=btPage(m.slice(3));else if(m==="examples")h+=examplesHTML();else if(m==="plists")h+=plistView();else h+=ill(15)+'<div class="num">About</div><h2>Create Your New Product</h2><p class="act">Version 1.43 (build 43) by HiProgress. A step-by-step guide to create, price and sell a new product online.</p><div class="row"><span>Privacy policy</span><a href="privacy-policy.html">Read</a></div>'+techInfo()+bankInfoHTML()+'<h3>Your data</h3><p class="act">Everything is stored only on this phone. This button deletes all products, files and answers.</p><div class="nav"><button data-act="wipe">Delete all my data</button></div>';
   h+='<div class="nav">'+(m!=="more"?'<button data-act="m" data-m="more">Menu</button>':"")+'<button class="p" data-act="mback">Back to my product</button></div></div>';
   A.innerHTML=h;updOk();
 }
@@ -714,7 +750,7 @@ function stepView(){
   (s.c||[]).forEach((c,j)=>{const k=st.i+"-"+j;h+=`<label class="ck"><input type="checkbox" data-c="${k}" ${st.c[k]?"checked":""}><span>${esc(c)}</span></label>`});
   if(s.warn)h+=`<p class="warn">${esc(s.warn)}</p>`;
   (s.f||[]).map(f=>f[0]==="pc6"&&tb4Total()>0?[f[0],f[1]+" (from the step 4 table)","calc",f[3]]:f).forEach(f=>{
-    if(f[2]==="tbl"){h+=`<div class="f">${esc(f[1])}</div>`+tblHTML(f[0]);return}
+    if(f[2]==="tbl"){h+=`<div class="f">${esc(f[1])}</div>`+tblHTML(f[0])+(f[0]==="tb4"?'<div class="nav"><button class="g" data-act="pl_save">Save list</button><button class="g" data-act="m" data-m="plists">Use a saved list</button></div>':"");return}
     const v=esc(st.v[f[0]]);
     h+=`<label class="f">${esc(f[1])}${f[2]==="calc"?' <span class="auto">auto</span>':""}`+(f[2]==="area"?`<textarea data-f="${f[0]}" placeholder="${esc(f[3])}">${v}</textarea>`:`<input type="${f[2]==="number"?"number":"text"}" ${f[2]==="number"?'inputmode="decimal" min="0" step="any"':""} ${f[2]==="calc"?"readonly":""} data-f="${f[0]}" value="${v}" placeholder="${esc(f[3])}">`)+"</label>";
   });
@@ -723,7 +759,7 @@ function stepView(){
   if(st.i===5||st.i===8)h+='<div class="hint" id="hint"></div>';
   h+=tipsHTML("s"+st.i);
   h+='<div class="okmsg" id="okmsg"></div>';
-  h+='<div class="nav">'+(st.i>0?'<button id="bk">Back</button>':"")+`<button class="p" id="nx">${st.i===S.length-1?"See my results":"Next step"}</button></div></div>`;
+  h+='<div class="nav">'+(st.i>0?'<button id="bk">Back</button>':"")+`<button class="p" id="nx">${st.i===S.length-1?"See my results":"Next step"}</button></div><div class="nav"><button class="g" data-act="save">Save product</button></div></div>`;
   h+=navHTML();
   A.innerHTML=h;
 }
@@ -809,7 +845,7 @@ function reportView(){
   h+=`<label class="f">Product name<input type="text" data-f="nm" value="${esc(st.v.nm)}" placeholder="My new product"></label><label class="f">Notes for this product<textarea data-f="fn" placeholder="Anything you want to remember">${esc(st.v.fn)}</textarea></label>`;
   h+=shareHTML2()+'<div class="nav"><button class="g" data-act="openm" data-m="docb">Build a document from blocks</button></div>';
   h+='<div class="nav"><button id="bk2">Edit answers</button><button class="g" id="pr">Print or save as PDF</button></div>';
-  h+='<div class="nav"><button class="p" data-act="save">Save the Product</button></div>'+'<div class="nav"><button data-act="export">Export a backup file (TXT)</button></div><p class="act" style="font-size:.85rem">Save keeps the product inside the app, in Product Path Files. A backup file is only needed to move a product to another phone or to keep a copy.</p>'+tipsHTML("r")+'</div>'+navHTML();
+  h+='<div class="nav"><button data-act="export">Export a backup file (TXT)</button></div><p class="act" style="font-size:.85rem">Save keeps the product inside the app, in Product Path Files. A backup file is only needed to move a product to another phone or to keep a copy.</p>'+tipsHTML("r")+'</div>'+navHTML();
   A.innerHTML=h;refreshAtt();
 }
 
@@ -1957,17 +1993,17 @@ function ashFix(){return;const sh=document.getElementById("advsheet"),i=document
 document.getElementById("advsheet").addEventListener("input",()=>{ashApply()});
 /* backup and restore of all products */
 const LSX=new Set(["pp","pp_tn","pp_ashf","pp_bxd","pp_bxm","pp_cp"]);
-function bkDlg(f){const w=document.createElement("div");w.className="dlg";const can=!!(navigator.canShare&&navigator.canShare({files:[f]}));
+function bkDlg(f){const w=document.createElement("div");w.className="dlg";const f2=new File([f],f.name.replace(/\.json$/i,".txt"),{type:"text/plain"});let sf=null;try{if(navigator.canShare&&navigator.canShare({files:[f2]}))sf=f2;else if(navigator.canShare&&navigator.canShare({files:[f]}))sf=f}catch(e){}const can=!!sf;
   w.innerHTML='<div class="dbox" role="dialog" aria-modal="true"><b>Your backup is ready</b><p></p>'+(can?'<div class="nav"><button class="p" data-d="share">Share or send</button></div>':"")+'<div class="nav"><button class="g" data-d="save">Save backup file</button><button class="g" data-d="close">Close</button></div></div>';
   w.querySelector("p").textContent=can?"Send the file to yourself by email, a chat app or a cloud folder, then keep it safe.":"Tap Save backup file, then copy it to a safe place such as a cloud folder or your email.";
-  w.addEventListener("click",async e=>{const b=e.target.closest("[data-d]");if(!b)return;const d=b.dataset.d;if(d==="close")w.remove();else if(d==="save"){dl(f.name,f)}else if(d==="share"){try{await navigator.share({files:[f],title:"Product Path backup"});w.remove()}catch(x){if(x&&x.name!=="AbortError")toast("Sharing did not work. Use Save backup file.")}}});document.body.appendChild(w)}
+  w.addEventListener("click",async e=>{const b=e.target.closest("[data-d]");if(!b)return;const d=b.dataset.d;if(d==="close")w.remove();else if(d==="save"){dl(f.name,f)}else if(d==="share"){const tl=w.querySelector("p");try{await navigator.share({files:[sf],title:"Product Path backup"});w.remove()}catch(x){if(x&&x.name==="AbortError")return;let ok=false;if(sf!==f){try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Product Path backup"});w.remove();ok=true}}catch(y){if(y&&y.name==="AbortError")return}}if(!ok){tl.textContent="Sharing is not available for this file on your phone. Tap Save backup file instead, then copy it to a safe place.";tl.style.color="#b91c1c";toast("Sharing did not work. Use Save backup file.")}}}});document.body.appendChild(w)}
 async function backupAll(){try{toast("Making your backup...");const ps=await dbAll("products"),fs=await dbAll("files"),ls={};
     for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(key&&key.indexOf("pp_")===0&&!LSX.has(key))ls[key]=localStorage.getItem(key)}
     const parts=['{"app":"ProductPathBackup","ver":1,"made":'+Date.now()+',"ls":'+JSON.stringify(ls)+',"products":'+JSON.stringify(ps)+',"files":['];
     for(let k=0;k<fs.length;k++){const f=fs[k];parts.push((k?",":"")+JSON.stringify({key:f.key,pid:f.pid,slot:f.slot,name:f.name,type:f.type,size:f.size,added:f.added,d:await toURL(f.blob)}))}
     parts.push("]}");const f=new File(parts,"productpath-backup-"+new Date().toISOString().slice(0,10)+".json",{type:"application/json"});
     if(!ps.length)toast("You have no saved products yet. The backup contains only your settings.");bkDlg(f)}catch(e){toast("The backup could not be made.")}}
-function restoreAll(){pick(".json,application/json",false,async fs=>{try{const d=JSON.parse(await fs[0].text());if(d.app!=="ProductPathBackup"||!Array.isArray(d.products))throw 0;
+function restoreAll(){pick(".json,.txt,application/json,text/plain",false,async fs=>{try{const d=JSON.parse(await fs[0].text());if(d.app!=="ProductPathBackup"||!Array.isArray(d.products))throw 0;
     if(!await ask("Restore "+d.products.length+" product(s) from this backup?\n\nProducts with the same ID are replaced. Your other saved products stay.",{ok:"Restore"}))return;
     for(const f of d.files||[]){const b=fromURL(f.d);await dbPut("files",{key:f.key,pid:f.pid,slot:f.slot,name:f.name,type:f.type,size:b.size,blob:b,added:f.added||Date.now()})}
     for(const p of d.products)await dbPut("products",p);
@@ -2975,7 +3011,7 @@ function placeAnim(){
 /* ---------- Results: print button at the bottom ---------- */
 function resPrint(){
   if(!st.r||!st.w||st.m||A.querySelector("#prb"))return;
-  const c=A.querySelector(".card");if(c)c.insertAdjacentHTML("beforeend",'<div class="nav" id="prb"><button class="p" id="pr2">Print on my printer</button></div><p class="act" style="font-size:.8rem">Your phone shows the printers it can reach over Wi-Fi. You can also choose Save as PDF.</p>');
+  const c=A.querySelector(".card");if(c)c.insertAdjacentHTML("beforeend",'<div class="nav" id="prb"><button class="p" id="pr2">Print on my printer</button></div><div class="nav" id="svb"><button class="p" data-act="save">Save product</button></div><p class="act" style="font-size:.8rem">Your phone shows the printers it can reach over Wi-Fi. You can also choose Save as PDF.</p>');
 }
 {const _r=render;render=function(){_r();try{placeAnim()}catch(e){}try{resPrint()}catch(e){}}}
 /* ---------- step 13: Product details ---------- */
