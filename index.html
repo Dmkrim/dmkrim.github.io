@@ -445,7 +445,7 @@ body::before{animation:kbb 20s ease-in-out infinite alternate}
 html{overflow-x:hidden}body{overflow-x:clip}
 .wss{width:min(50vw,360px);aspect-ratio:1/1;margin:12px auto;border-radius:14px;overflow:hidden;background:#fff;border:2px solid rgba(255,255,255,.35);cursor:pointer}.wss[hidden]{display:none}.wss img{display:block;width:100%;height:100%;object-fit:cover}
 .plc{border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:10px;margin:8px 0}.plc small{display:block;margin:2px 0 6px}.plc .nav{flex-wrap:wrap}
-.pdv button{flex:1 1 0}.pdl{margin:8px 0}.pdc{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:8px;margin:8px 0}.pdp{flex:0 0 72px;width:72px;height:72px;border-radius:10px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(128,128,128,.3)}.pdp img{width:100%;height:100%;object-fit:cover;display:block}.fic{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#fff;font-weight:700;font-size:1rem;background:#666}.fic-pdf{background:#c0392b}.fic-doc{background:#2b579a}.fic-xls{background:#1e7145}.pdi{flex:1;min-width:0}.pdi b{display:block;word-break:break-word}.pdi small{display:block;margin:2px 0 6px}.pdb{display:flex;flex-wrap:wrap;gap:6px}.pdb button{min-height:0;padding:6px 10px;font-size:.85rem}.pdl.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pdl.grid .pdc{flex-direction:column;margin:0}.pdl.grid .pdp{flex:none;width:100%;height:auto;aspect-ratio:1/1}.pdl.grid .pdi{width:100%}
+.pdv button{flex:1 1 0}.pdl{margin:8px 0}.pdc{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:8px;margin:8px 0}.pdp{flex:0 0 72px;width:72px;height:72px;border-radius:10px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(128,128,128,.3)}.pdp img{width:100%;height:100%;object-fit:cover;display:block}.fic{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#fff;font-weight:700;font-size:1rem;background:#666}.fic-pdf{background:#c0392b}.fic-doc{background:#2b579a}.fic-xls{background:#1e7145}.pdi{flex:1;min-width:0}.pdi b{display:block;word-break:break-word}.pdi small{display:block;margin:2px 0 6px}.pdb{display:flex;flex-wrap:wrap;gap:6px}.pdb button{min-height:0;padding:6px 10px;font-size:.85rem}.pdl.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pdl.grid .pdc{flex-direction:column;margin:0}.pdl.grid .pdp{flex:none;width:100%;height:auto;aspect-ratio:1/1}.pdl.grid .pdi{width:100%}.pdl.grid .pdhide{display:none}
 .ipic{display:block;width:195px;max-width:100%;height:auto;aspect-ratio:1/1;margin:10px auto 6px;border-radius:12px;background:#fff}
 </style>
 </head>
@@ -609,26 +609,31 @@ async function plAct(a,id){
 /* ---------- Results: The product documents page ---------- */
 const PDL={sketch:"Sketch",design:"Design",xls:"Materials list (Excel)",doc:"Assembly instructions (Word)",proto:"Prototype",other:"Other",icon:"Product picture",pdet:"Product details",bef:"Before picture",aft:"After picture"};
 function pdKind(f){const n=(f.name||"").toLowerCase(),t=f.type||"";if(t.startsWith("image/"))return"img";if(t==="application/pdf"||/\.pdf$/.test(n))return"pdf";if(/\.docx?$/.test(n)||/word/.test(t))return"doc";if(/\.(xlsx?|xlsm|csv)$/.test(n)||/excel|spreadsheet|csv/.test(t))return"xls";return"file"}
+let pdMode="";
+const pdSig=f=>(f.name||"")+"|"+f.size;
 function pdocsView(){
+  if(pdMode==="hid")return ill(2)+'<div class="num">Results</div><h2>Hidden documents</h2><p class="act">These documents are hidden on the documents page. Tap Show to bring a document back.</p><div id="pdl" class="pdl list"><p class="act">Loading...</p></div><div class="nav"><button class="g" data-act="pd_mode" data-v="">Back to the documents</button></div>';
   const v=LS.get("pp_dview","list");
-  return ill(2)+'<div class="num">Results</div><h2>The product documents</h2><p class="act">All pictures and files of this product. Open, share, print or delete them here, or add new ones.</p><div class="nav"><button class="p" data-act="pd_add">&#128206; Add files</button><button class="g" data-act="pd_cam">&#128247; Take a picture</button></div><div class="nav pdv"><button class="'+(v==="list"?"p":"g")+'" data-act="pd_view" data-v="list">List</button><button class="'+(v==="grid"?"p":"g")+'" data-act="pd_view" data-v="grid">Grid</button></div><div id="pdl" class="pdl '+v+'"><p class="act">Loading...</p></div>';
+  return ill(2)+'<div class="num">Results</div><h2>The product documents</h2><p class="act">All pictures and files of this product. Open, share, print or delete them here, or add new ones.</p><div class="nav"><button class="p" data-act="pd_add">&#128206; Add files</button><button class="g" data-act="pd_cam">&#128247; Take a picture</button></div><div class="nav pdv"><button class="'+(v==="list"?"p":"g")+'" data-act="pd_view" data-v="list">List</button><button class="'+(v==="grid"?"p":"g")+'" data-act="pd_view" data-v="grid">Grid</button></div><div id="pdl" class="pdl '+v+'"><p class="act">Loading...</p></div><div class="nav"><button class="g" data-act="pd_mode" data-v="hid">Show hided documents</button></div>';
 }
 let pdUrls=[];
 async function pdFill(){
   const el=document.getElementById("pdl");if(!el)return;
   let fs=[];try{fs=await filesOf(st.pid)}catch(e){el.innerHTML='<p class="act">File storage is not available on this device.</p>';return}
-  fs=fs.filter(f=>!(f.slot==="icon"&&f.src)).sort((a,b)=>a.added-b.added);
+  fs=fs.filter(f=>!(f.slot==="icon"&&f.src)).sort((a,b)=>a.added-b.added);const hid=new Set(st.v.pdh||[]),hm=pdMode==="hid";fs=fs.filter(f=>hid.has(pdSig(f))===hm);
   pdUrls.forEach(u=>URL.revokeObjectURL(u));pdUrls=[];
-  if(!fs.length){el.innerHTML='<p class="act">No files yet. Tap Add files or Take a picture.</p>';return}
+  if(!fs.length){el.innerHTML=hm?'<p class="act">No hidden documents.</p>':'<p class="act">No files yet. Tap Add files or Take a picture.</p>';return}
   el.innerHTML=fs.map(f=>{const k=pdKind(f);let pv;if(k==="img"){const u=URL.createObjectURL(f.blob);pdUrls.push(u);pv=`<img src="${u}" alt="">`}else pv=`<span class="fic fic-${k}">${k==="pdf"?"PDF":k==="doc"?"DOC":k==="xls"?"XLS":((f.name||"").split(".").pop()||"FILE").slice(0,4).toUpperCase()}</span>`;
     const key=esc(f.key),printable=k!=="file"||/\.txt$/i.test(f.name||"");
-    return `<div class="pdc"><div class="pdp" data-act="of" data-key="${key}" role="button" tabindex="0" aria-label="Open ${esc(f.name)}">${pv}</div><div class="pdi"><b>${esc(f.name)}</b><small>${esc(PDL[f.slot]||"File")}, ${kb(f.size)}</small><div class="pdb"><button class="g" data-act="of" data-key="${key}">Open</button><button class="g" data-act="pd_share" data-key="${key}">Share</button>${printable?`<button class="g" data-act="pd_print" data-key="${key}">Print</button>`:""}<button class="g" data-act="pd_del" data-key="${key}">Delete</button></div></div></div>`}).join("");
+    return `<div class="pdc"><div class="pdp" data-act="of" data-key="${key}" role="button" tabindex="0" aria-label="Open ${esc(f.name)}">${pv}</div><div class="pdi"><b>${esc(f.name)}</b><small>${esc(PDL[f.slot]||"File")}, ${kb(f.size)}</small><div class="pdb">${hm?`<button class="p" data-act="pd_unhide" data-key="${key}">Show</button>`:""}<button class="g" data-act="of" data-key="${key}">Open</button><button class="g" data-act="pd_share" data-key="${key}">Share</button>${printable?`<button class="g" data-act="pd_print" data-key="${key}">Print</button>`:""}<button class="g" data-act="pd_del" data-key="${key}">Delete</button>${hm?"":`<button class="g pdhide" data-act="pd_hide" data-key="${key}">Hide</button>`}</div></div></div>`}).join("");
 }
 async function pdAct(a,d){
   if(a==="pd_view"){LS.set("pp_dview",d.v);render();return}
+  if(a==="pd_mode"){pdMode=d.v||"";render();return}
   if(a==="pd_add"){pick("",true,async fs=>{await addFiles("other",fs);pdFill()});return}
   if(a==="pd_cam"){pick("image/*",true,async fs=>{await addFiles("other",fs);pdFill()},true);return}
   const f=await dbGet("files",d.key);if(!f){pdFill();return}
+  if(a==="pd_hide"||a==="pd_unhide"){const s=pdSig(f),L=(st.v.pdh||[]).filter(x=>x!==s);if(a==="pd_hide")L.push(s);st.v.pdh=L;save();toast(a==="pd_hide"?"Hidden. Find it again under Show hided documents.":"The document is shown again.");pdFill();return}
   if(a==="pd_share"){const file=new File([f.blob],f.name||"file",{type:f.type||"application/octet-stream"});
     try{if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],title:f.name});else{dl(f.name,file);toast("Saved to your phone. Look in your Downloads folder.")}}catch(x){if(x&&x.name!=="AbortError"){dl(f.name,file);toast("Sharing did not work. The file was saved to your phone.")}}return}
   if(a==="pd_print"){
@@ -638,7 +643,7 @@ async function pdAct(a,d){
     for(const o of await filesOf(st.pid))if(o.slot==="icon"&&o.src===f.key)await dbDel("files",o.key);
     await dbDel("files",f.key);st.fc=(st.fc||0)+1;save();toast("File deleted.");pdFill()}
 }
-{const _rp=render;render=function(){_rp();try{if(st.m==="pdocs")pdFill()}catch(e){}}}
+{const _rp=render;render=function(){if(st.m!=="pdocs")pdMode="";_rp();try{if(st.m==="pdocs")pdFill()}catch(e){}}}
 
 async function saveProduct(silent){
   const nm=(st.v.nm||"").trim();
@@ -716,7 +721,7 @@ async function act(a,el){
     case"txt":{const r=await dbGet("products",d.id);await exportRec(r);break}
     case"import":pick(".txt,text/plain",false,fs=>importTxt(fs[0]));break;
     case"save":await saveProduct();break;
-    case"pd_view":case"pd_add":case"pd_cam":case"pd_share":case"pd_print":case"pd_del":await pdAct(a,d);break;
+    case"pd_view":case"pd_mode":case"pd_hide":case"pd_unhide":case"pd_add":case"pd_cam":case"pd_share":case"pd_print":case"pd_del":await pdAct(a,d);break;
     case"pl_save":case"pl_use":case"pl_ren":case"pl_copy":case"pl_del":await plAct(a,d.id);break;
     case"export":await exportProduct();break;
     case"cam":case"up":{const c=ATTC[d.s];pick(a==="cam"?"image/*":ACC[c.k],!!c.multi,fs=>addFiles(d.s,fs),a==="cam");break}
@@ -3048,7 +3053,7 @@ function placeAnim(){
 /* ---------- Results: print button at the bottom ---------- */
 function resPrint(){
   if(!st.r||!st.w||st.m||A.querySelector("#prb"))return;
-  const c=A.querySelector(".card");if(c)c.insertAdjacentHTML("beforeend",'<div class="nav" id="prb"><button class="p" id="pr2">Print on my printer</button></div><div class="nav" id="pdb2"><button class="g" data-act="m" data-m="pdocs">The product documents</button></div><div class="nav" id="svb"><button class="p" data-act="save">Save product</button></div><p class="act" style="font-size:.8rem">Your phone shows the printers it can reach over Wi-Fi. You can also choose Save as PDF.</p>');
+  const c=A.querySelector(".card");if(c)c.insertAdjacentHTML("beforeend",'<div class="nav" id="prb"><button class="p" id="pr2">Print on my printer</button></div><div class="nav" id="pdb2"><button class="p" data-act="m" data-m="pdocs">The product documents</button></div><div class="nav" id="svb"><button class="p" data-act="save">Save product</button></div><p class="act" style="font-size:.8rem">Your phone shows the printers it can reach over Wi-Fi. You can also choose Save as PDF.</p>');
 }
 {const _r=render;render=function(){_r();try{placeAnim()}catch(e){}try{resPrint()}catch(e){}}}
 /* ---------- step 13: Product details ---------- */
