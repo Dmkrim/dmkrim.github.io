@@ -455,7 +455,8 @@ details>summary{cursor:pointer;min-height:44px;padding:10px 0;box-sizing:border-
 .spcv{width:100%;height:auto;border-radius:10px;display:block;margin:8px 0;background:#e5e7eb}.spf button{flex:1 1 0}.spth{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.spt{width:64px;height:64px;min-height:0;padding:0;border:3px solid transparent;border-radius:10px;overflow:hidden;background:rgba(128,128,128,.2)}.spt.on{border-color:#1f4fe0}.spt img{width:100%;height:100%;object-fit:cover;display:block}.spt.spn{width:auto;padding:0 12px;font-size:.85rem}.pdv button{flex:1 1 0}.pdl{margin:8px 0}.pdc{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:8px;margin:8px 0}.pdp{flex:0 0 72px;width:72px;height:72px;border-radius:10px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(128,128,128,.3)}.pdp img{width:100%;height:100%;object-fit:cover;display:block}.fic{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#fff;font-weight:700;font-size:1rem;background:#666}.fic-pdf{background:#c0392b}.fic-doc{background:#2b579a}.fic-xls{background:#1e7145}.pdi{flex:1;min-width:0}.pdi b{display:block;word-break:break-word}.pdi small{display:block;margin:2px 0 6px}.pdb{display:flex;flex-wrap:wrap;gap:6px}.pdb button{min-height:0;padding:6px 10px;font-size:.85rem}.pdl.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pdl.grid .pdc{flex-direction:column;margin:0}.pdl.grid .pdp{flex:none;width:100%;height:auto;aspect-ratio:1/1}.pdl.grid .pdi{width:100%}.pdl.grid .pdhide{display:none}
 .ipic{display:block;width:195px;max-width:100%;height:auto;aspect-ratio:1/1;margin:10px auto 6px;border-radius:12px;background:#fff}
 .ms.a>div{white-space:pre-line}
-.stt{padding-bottom:24px;position:relative;z-index:2}.stt .nav{margin-top:0}#undobtn{font-size:1.2rem;font-weight:800}#undobtn:disabled{opacity:.4}
+.stt{margin:6px 0 4px}.stt .nav{margin-top:6px}.spk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:50vh;overflow:auto;margin:8px 0 12px}.spk button{padding:0;min-height:0;border:2px solid var(--bd);border-radius:8px;background:none;cursor:pointer}.spk img{width:100%;aspect-ratio:1;object-fit:cover;display:block;border-radius:6px}
+#undobtn{font-size:1.2rem;font-weight:800}#undobtn:disabled{opacity:.4}
 .tw[data-t="tb4"] .ts th:first-child{width:100%}.tw[data-t="tb4"] .ts td:first-child input{width:100%;min-width:110px}.tw[data-t="tb4"] .ts table{min-width:0}
 .ts td.rx{width:30px;padding:3px 0 3px 2px}.rxb{background:transparent;border:1px solid var(--bd);color:var(--mu);border-radius:50%;width:26px;height:26px;min-width:0;min-height:0;padding:0;font-size:1rem;line-height:1;cursor:pointer}
 .pe{padding:1px 6px;min-width:0;min-height:0;font-size:.8rem;margin-left:4px;line-height:1.3}
@@ -543,7 +544,7 @@ const ATT={4:[{s:"sketch",l:"Picture of your sketch",k:"img",cam:1,multi:1}],7:[
 const ATTC={other:{s:"other",l:"Other documents or pictures (quotes, receipts, contracts)",k:"any",cam:1,multi:1}};
 Object.values(ATT).flat().forEach(a=>ATTC[a.s]=a);
 ATTC.icon={s:"icon",l:"Product picture for the list (optional). If empty, the app uses your prototype, design or sketch picture.",k:"img",cam:1};
-const attHTML=a=>`<div class="att"><div class="f">${esc(a.l)}</div><div class="ab">${a.cam?`<button class="g" data-act="cam" data-s="${a.s}">&#128247; Take a picture</button>`:""}<button class="g" data-act="up" data-s="${a.s}">&#128206; ${a.k==="img"?"Upload picture":a.k==="xls"?"Upload Excel file":a.k==="doc"?"Upload Word file":"Upload file"}</button></div><div class="al" data-slot="${a.s}"></div></div>`;
+const attHTML=a=>`<div class="att"><div class="f">${esc(a.l)}</div><div class="ab">${a.cam?`<button class="g" data-act="cam" data-s="${a.s}">&#128247; Take a picture</button>`:""}${a.k==="img"||a.cam?`<button class="g" data-act="usep" data-s="${a.s}">&#128444; Pictures of this product</button>`:""}<button class="g" data-act="up" data-s="${a.s}">&#128206; ${a.k==="img"?"Upload picture":a.k==="xls"?"Upload Excel file":a.k==="doc"?"Upload Word file":"Upload file"}</button></div><div class="al" data-slot="${a.s}"></div></div>`;
 const TB={tb3:{cols:["Product","Shop","Price"],num:[2],rows:4},tb4:{cols:["Part name","Origin","Price","Qty"],num:[2,3],rows:4,hide:[1]}};
 const tbGet=k=>{const T=TB[k],r=(st.v[k]||[]).map(x=>x.slice());while(r.length<T.rows)r.push(T.cols.map(()=>""));return r};
 function tblHTML(k){const T=TB[k],r=tbGet(k);return `<div class="tw" data-t="${k}"><div class="ts"><table><thead><tr>${T.cols.map((c,j)=>(T.hide||[]).includes(j)?"":`<th>${esc(c)}</th>`).join("")}${k==="tb4"?"<th>Total</th><th></th>":""}</tr></thead><tbody>${r.map((row,i)=>`<tr>${T.cols.map((_,j)=>(T.hide||[]).includes(j)?"":`<td><input type="text" class="${T.num.includes(j)?"n":""}" ${T.num.includes(j)?'inputmode="decimal"':""} data-tb="${k}" data-r="${i}" data-c="${j}" value="${esc(row[j]||"")}" aria-label="${esc(T.cols[j])}, row ${i+1}"></td>`).join("")}${k==="tb4"?`<td class="tc" data-rt="${i}">${rtxt(row)}</td><td class="rx"><button type="button" class="rxb" data-act="delrow" data-k="${k}" data-r="${i}" aria-label="Delete row ${i+1}">&times;</button></td>`:""}</tr>`).join("")}</tbody></table></div>${k==="tb4"?`<div class="ttl">Total for the project: <b id="tt">${money(tb4Total())}</b></div><p class="act" style="margin:2px 0 0;font-size:.85rem">Total = price x qty. An empty Qty counts as 1.</p>`:""}<div class="nav" style="margin-top:8px"><button class="g" data-act="addrow" data-k="${k}">+ Add row</button>${r.length>T.rows?`<button class="g" data-act="rmrow" data-k="${k}">Remove last row</button>`:""}${k==="tb3"?'<button class="g" data-act="lowfrom">Use lowest price</button>':""}</div></div>`}
@@ -554,6 +555,13 @@ const toURL=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res
 const fromURL=d=>{const i=d.indexOf(","),m=/data:([^;,]*)/.exec(d),b=atob(d.slice(i+1)),u=new Uint8Array(b.length);for(let k=0;k<b.length;k++)u[k]=b.charCodeAt(k);return new Blob([u],{type:m?m[1]:""})};
 const shrink=(f,mx)=>new Promise((res,rej)=>{if(!f.type.startsWith("image/")||f.type.includes("svg"))return res(f);const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const k=Math.min(1,(mx||1280)/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(new File([b],f.name.replace(/\.\w+$/,"")+".jpg",{type:"image/jpeg"})):rej()},"image/jpeg",.82)};im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u});
 function pick(accept,multi,cb,cam){const i=document.createElement("input");i.type="file";if(accept)i.accept=accept;if(multi)i.multiple=true;if(cam)i.capture="environment";i.onchange=()=>{if(i.files.length)cb(Array.from(i.files))};i.click()}
+async function pickStored(cb){let fs=[];try{fs=(await filesOf(st.pid)).filter(f=>f.type&&f.type.startsWith("image/")&&f.type.indexOf("svg")<0&&f.blob)}catch(e){}
+  if(!fs.length){toast("This product has no saved pictures yet.");return}
+  fs.sort((a,b)=>a.added-b.added);const w=document.createElement("div");w.className="dlg",us=[];
+  w.innerHTML='<div class="dbox" role="dialog" aria-modal="true"><b>Pictures of this product</b><p>Tap a picture to use it.</p><div class="spk"></div><div class="nav"><button class="dno">Cancel</button></div></div>';
+  const end=()=>{us.forEach(u=>URL.revokeObjectURL(u));w.remove()},g=w.querySelector(".spk");
+  fs.forEach(f=>{const u=URL.createObjectURL(f.blob);us.push(u);const b=document.createElement("button");b.type="button";b.title=(SL[f.slot]||"Picture")+": "+(f.name||"");const im=document.createElement("img");im.alt=b.title;im.src=u;b.appendChild(im);b.onclick=()=>{const fl=new File([f.blob],f.name||"picture.jpg",{type:f.type});end();cb(fl)};g.appendChild(b)});
+  w.querySelector(".dno").onclick=end;document.body.appendChild(w)}
 async function addFiles(slot,fs){
   const a=ATTC[slot];
   if(!a.multi)for(const o of await filesOf(st.pid))if(o.slot===slot)await dbDel("files",o.key);
@@ -829,6 +837,7 @@ async function act(a,el){
     case"pd_view":case"pd_mode":case"pd_hide":case"pd_unhide":case"pd_add":case"pd_cam":case"pd_share":case"pd_print":case"pd_del":await pdAct(a,d);break;
     case"pl_save":case"pl_use":case"pl_ren":case"pl_copy":case"pl_del":await plAct(a,d.id);break;
     case"export":await exportProduct();break;
+    case"usep":{pickStored(f=>addFiles(d.s,[f]));break}
     case"cam":case"up":{const c=ATTC[d.s];pick(a==="cam"?"image/*":ACC[c.k],!!c.multi,fs=>addFiles(d.s,fs),a==="cam");break}
     case"of":await openFile(d.key);break;
     case"rm":{for(const o of await filesOf(st.pid))if(o.slot==="icon"&&o.src===d.key)await dbDel("files",o.key);await dbDel("files",d.key);st.fc=(st.fc||0)+1;save();refreshAtt();break}
@@ -897,7 +906,7 @@ function stepView(){
   if(st.i===5)sync6();
   const s=S[st.i];
   let h='<div class="ticks">'+S.map((_,j)=>`<i class="${j===st.i?"now":done(j)?"on":""}"></i>`).join("")+"</div>";
-  h+=rdyHTML();h+=`<div class="card">${stTop()}${ill(st.i)}<div class="num">Step ${st.i+1} of ${S.length}</div><h2>${esc(s.t)}</h2><p class="act">${esc(s.a)}</p>`;
+  h+=rdyHTML();h+=`<div class="card">${ill(st.i)}<div class="num">Step ${st.i+1} of ${S.length}</div><h2>${esc(s.t)}</h2><p class="act">${esc(s.a)}</p>`;
   (s.c||[]).forEach((c,j)=>{const k=st.i+"-"+j;h+=`<label class="ck"><input type="checkbox" data-c="${k}" ${st.c[k]?"checked":""}><span>${esc(c)}</span></label>`;
     if(st.i===12&&j===0)h+='<div class="nav shc"><button class="g" data-act="bt_go" data-t="ch">Profit by sales channel</button></div>';
     if(st.i===12&&j===3)h+=stBtn("ws","Wholesale price sheet");
@@ -914,7 +923,7 @@ function stepView(){
   if(st.i===2)h+=baHTML();
   (ATT[st.i]||[]).forEach(a=>{h+=attHTML(a)});
   if(st.i===5||st.i===8)h+='<div class="hint" id="hint"></div>';
-  h+=tipsHTML("s"+st.i);
+  h+=stTop();h+=tipsHTML("s"+st.i);
   h+='<div class="okmsg" id="okmsg"></div>';
   h+='<div class="nav">'+(st.i>0?'<button id="bk">Back</button>':"")+`<button class="p" id="nx">${st.i===S.length-1?"See my results":"Next step"}</button></div><div class="nav"><button class="p" data-act="save">Save product</button></div></div>`;
   h+=navHTML();
@@ -3278,6 +3287,7 @@ const btImg=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=(
 function btBand(x,W,M,B,SY,LG){const bh=(B.n||LG)?150:36;x.fillStyle=SY.c;x.fillRect(0,0,W,bh);if(bh>100){let tx=M;if(LG){const hh=100,ww=Math.min(300,LG.width*hh/LG.height);x.drawImage(LG,M,25,ww,hh);tx=M+ww+24}if(B.n){x.font="700 44px Arial, Helvetica, sans-serif";x.fillStyle="#fff";x.textAlign="left";x.textBaseline="middle";x.fillText(String(B.n).slice(0,40),tx,75);x.textBaseline="top"}}return bh+40}
 async function btLogoPick(f){if(!f)return;const u=URL.createObjectURL(f),i=await btImg(u);URL.revokeObjectURL(u);if(!i){toast("Could not read that picture.");return}const s=Math.min(1,300/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);btSet("biz","logo",c.toDataURL("image/png"));btRe();toast("Logo saved.")}
 A.addEventListener("change",e=>{if(e.target.id==="bizlogo")btLogoPick(e.target.files&&e.target.files[0])});
+BTA["biz.pickp"]=()=>pickStored(f=>btLogoPick(f));
 BTA["biz.nologo"]=()=>{btSet("biz","logo","");btRe()};
 /* Business details tool */
 BTL.push(["bz","Business details and PDF look","Your name, logo, colors and thank-you line for all PDFs","Documents to send"]);
@@ -3285,7 +3295,7 @@ BTI.bz="\u{1F3E2}";
 BTV.bz={view(){const b=biz();return'<p class="act" style="font-size:.85rem">These details appear on every PDF made by the business tools: invoices, quotes, the wholesale sheet and the business plan summary. They stay on this phone.</p>'
  +bi("biz","n","Business name",b.n)+bta("biz","a","Address",b.a)+'<div class="btg">'+bi("biz","t","Tax or VAT number",b.t)+bi("biz","c","Currency symbol",b.c,"text","$")+bi("biz","e","Email",b.e,"email")+bi("biz","ph","Phone",b.ph,"tel")+"</div>"+bta("biz","p","Payment details (bank, PayPal)",b.p)
  +"<h3>Look of your PDFs</h3>"+bsel("biz","sty","PDF colors",[["Classic","Classic blue"],["Dark","Dark"],["Warm","Warm orange"]],b.sty||"Classic",false)+bi("biz","ty","Line at the end of invoices and quotes",b.ty,"text","Thank you for your business")
- +'<label class="f">Your logo (optional)<input type="file" accept="image/*" id="bizlogo"></label>'+(b.logo?`<div class="nav" style="align-items:center"><img src="${b.logo}" alt="Your logo" style="max-height:56px;max-width:50%;border-radius:6px;background:#fff">${bbtn("biz.nologo","Remove logo")}</div>`:"")
+ +'<label class="f">Your logo (optional)<input type="file" accept="image/*" id="bizlogo"></label>'+btnav(bbtn("biz.pickp","Use a picture of this product"))+(b.logo?`<div class="nav" style="align-items:center"><img src="${b.logo}" alt="Your logo" style="max-height:56px;max-width:50%;border-radius:6px;background:#fff">${bbtn("biz.nologo","Remove logo")}</div>`:"")
  +btnav(bbtn("bz.prev","Open a sample PDF","p"))},out(){return""}};
 BTA["bz.prev"]=async()=>{btViewMode=true;const b=biz(),c=b.c||"$",pb=await btPdf("Sample document","Preview of your PDF look",[["h","Items"],["tbl",["Description","Qty","Amount"],[["Sample item","2",c+"20.00"]],[4,1,1.5],[1,2]],["p",b.ty||"Thank you for your business."]]);await btSend(pb,"sample-pdf.pdf","Sample PDF")};
 Object.assign(window,{btHub,btKeyHTML,btExtra,btRec,btFav,btHelp,BTPS,btImg,btBand,btLogoPick});
